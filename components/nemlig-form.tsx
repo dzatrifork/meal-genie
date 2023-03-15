@@ -12,7 +12,9 @@ export type Values = {
     pwd?: string,
 }
 
-export interface PropsType { }
+export interface PropsType {
+  mealPlan: GptResult
+}
 
 export interface RefType {
     result: GptResult | null;

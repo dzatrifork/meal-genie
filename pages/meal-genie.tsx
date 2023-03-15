@@ -97,7 +97,7 @@ export default function MealGenie() {
             </Card.Content>
             { result != null 
             ? 
-            <NemligForm></NemligForm> 
+            <NemligForm mealPlan={result}></NemligForm> 
             : 
             <Card.Content>
               Dan madplan...
