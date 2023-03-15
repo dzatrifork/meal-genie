@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build-fomantic": "cd semantic && gulp build-css build-assets",
+    "watch-fomantic": "cd semantic && pnpm run build-fomantic && gulp watch",
     "start": "next start",
     "lint": "next lint"
   },
@@ -17,6 +19,11 @@
     "next": "13.2.4",
     "react": "18.2.0",
     "react-dom": "18.2.0",
+    "semantic-ui-react": "^2.1.4",
     "typescript": "4.9.5"
+  },
+  "devDependencies": {
+    "fomantic-ui": "^2.9.2",
+    "gulp": "^4.0.2"
   }
 }
