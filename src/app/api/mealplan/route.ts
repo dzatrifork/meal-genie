@@ -1,3 +1,4 @@
+import { NextApiRequest, NextApiResponse } from "next";
 import { Configuration, OpenAIApi } from "openai";
 
 const prompt = "Make a {days} day food plan for {people} people. List the mealplan. Then list a summary of all the needed ingredients. Present the ingredients in CSV-format starting with $start$ and ending with $end$. Result should be in danish."
@@ -9,11 +10,26 @@ export type GptResult = {
     ingredients: Array<string> 
 }
 
-export async function GetMealPlan(days: string, people: string) {
+interface GptRequest extends NextApiRequest {
+    body: {
+        days: string,
+        persons: string
+    }
+}
+
+export async function POST(req: GptRequest) {
+    const result = await GetMealPlan(req.body.days, req.body.persons);
+    if(result == null) {
+        return new Response();
+    }
+    return new Response(JSON.stringify(result));
+}
+
+async function GetMealPlan(days: string, people: string) {
     var customPrompt = prompt.replace("{days}", days).replace("{people}", people);
 
     const configuration = new Configuration({
-        apiKey: "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",
+        apiKey: "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",
     });
     const openai = new OpenAIApi(configuration);
 

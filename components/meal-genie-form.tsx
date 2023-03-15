@@ -5,13 +5,21 @@ import {
     Input,
 } from 'semantic-ui-react'
 import React, { useState } from "react";
-import { GetMealPlan, GptResult } from '@/app/api/mealplan/mealplan';
+import { GptResult } from '@/app/api/mealplan/route';
 
 export type Values = {
     days?: number,
     persons?: number,
 }
 
+const fetcher = (url: string, body: string) => fetch(url, {
+    method: "POST",
+    body: body,
+    headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+    }
+}).then((res) => res.json())
 
 
 const MealGenieForm = () => {
@@ -21,7 +29,7 @@ const MealGenieForm = () => {
         persons: undefined
         });
         const [result, 
-            setResult] = useState<GptResult | null>(null);
+            setResult] = useState<GptResult | undefined>(undefined);
 
 
         const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -32,7 +40,8 @@ const MealGenieForm = () => {
             setLoading(false);
             return;
         }
-        const result: GptResult|null = await GetMealPlan(values.days.toString(), values.persons.toString());
+        const result: GptResult = await fetcher('/api/mealplan', JSON.stringify({days: values.days, persons: values.persons}));
+
         setResult(result);
         setLoading(false);
     }
