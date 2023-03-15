@@ -14,7 +14,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const element = req.body.productNames[index];
         productList.push(await GetProductId(element));
     }
-    const loginCookie = await login("simon_krog_schroeder@hotmail.com", "PASSWORD_GOES_HERE");
+    const loginCookie = await login(req.body.username, req.body.password);
     if (loginCookie === undefined) {
         return;
     }
@@ -29,6 +29,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 async function addToBasket(cookie: string, productId: string) {
     const path = "/basket/AddToBasket";
+
+    console.log("%%%%%%%%ADDING%%%%%%%%%%%%%%%%");
+    console.log(productId);
+    console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%");
+
     const result = await fetch(API_ROOT + path, {
         method: "POST",
         headers: {
@@ -65,6 +70,11 @@ async function login(username: string, password: string) {
     if (regexCookie === undefined) {
         return
     }
+
+    console.log("%%%%%%%%LOGIN GOOD%%%%%%%%%%%%%%%%");
+    console.log(loginCookie);
+    console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%")
+
     return regexCookie;
 }
 

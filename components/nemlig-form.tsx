@@ -42,7 +42,8 @@ const NemligForm = (props: PropsType) => {
         setLoading(true);
         event.preventDefault();
         console.log(values);
-        await new Promise( resolve => setTimeout(resolve, 2000) );
+        const names = props.mealPlan.ingredients.map(i => i.navn)
+        await fetcher('api/nemlig', JSON.stringify({username: values.user, password: values.pwd, productNames: names}));
         setLoading(false);
     }
 
