@@ -4,12 +4,18 @@ import {
     Form,
     Input,
 } from 'semantic-ui-react'
-import React, { useState } from "react";
+import React, { forwardRef, Ref, useImperativeHandle, useState } from "react";
 import { GptResult } from '../pages/api/mealplan';
 
 export type Values = {
     days?: number,
     persons?: number,
+}
+
+export interface PropsType {}
+
+export interface RefType {
+  result: GptResult | null;
 }
 
 const fetcher = (url: string, body: string) => fetch(url, {
@@ -21,21 +27,21 @@ const fetcher = (url: string, body: string) => fetch(url, {
     }
 }).then((res) => res.json())
 
-
-const MealGenieForm = () => {
+const IForm = (props: PropsType, ref: Ref<RefType>) => {
     const [loading, setLoading] = useState<boolean>(false);
     const [values, setValues] = useState<Values>({
         days: undefined,
         persons: undefined
-        });
-        const [result, 
-            setResult] = useState<GptResult | undefined>(undefined);
+    });
+
+    const [result, setResult] = useState<GptResult | null>(null);
+    useImperativeHandle(ref, () => ({result}))
 
 
-        const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-            setLoading(true)
-            event.preventDefault();
-            console.log(values)
+    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+        setLoading(true)
+        event.preventDefault();
+        console.log(values)
         if (values.days == null || values.persons == null) {
             setLoading(false);
             return;
@@ -61,10 +67,8 @@ const MealGenieForm = () => {
                 <Form.Field control={Button}>Opret madplan</Form.Field>
             </Form>
         </Card.Content>
-        <Card.Content extra>
-            Resultat: {JSON.stringify(result)},
-        </Card.Content>
     </>;
 }
+const MealGenieForm = forwardRef(IForm)
 
 export default MealGenieForm;
