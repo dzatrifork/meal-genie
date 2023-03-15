@@ -5,6 +5,7 @@ import {
     Input,
 } from 'semantic-ui-react'
 import React, { useState } from "react";
+import { GetMealPlan, GptResult } from '@/app/api/mealplan/mealplan';
 
 export type Values = {
     days?: number,
@@ -18,16 +19,21 @@ const MealGenieForm = () => {
     const [values, setValues] = useState<Values>({
         days: undefined,
         persons: undefined
-    });
-    const [result, setResult] = useState<Values | null>(null);
+        });
+        const [result, 
+            setResult] = useState<GptResult | null>(null);
 
 
-    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-        setLoading(true)
-        event.preventDefault();
-        console.log(values)
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        setResult(values);
+        const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+            setLoading(true)
+            event.preventDefault();
+            console.log(values)
+        if (values.days == null || values.persons == null) {
+            setLoading(false);
+            return;
+        }
+        const result: GptResult|null = await GetMealPlan(values.days.toString(), values.persons.toString());
+        setResult(result);
         setLoading(false);
     }
 
