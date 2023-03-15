@@ -10,38 +10,39 @@ export type GptResult = {
     ingredients: Array<string> 
 }
 
-interface GptRequest extends NextApiRequest {
+type GptRequest = NextApiRequest & {
     body: {
         days: string,
         persons: string
     }
 }
 
-export async function POST(req: GptRequest) {
+export default async function handler(req: GptRequest, res: NextApiResponse) {
     const result = await GetMealPlan(req.body.days, req.body.persons);
     if(result == null) {
         return new Response();
     }
-    return new Response(JSON.stringify(result));
+    return res.status(201).json(result);
 }
 
 async function GetMealPlan(days: string, people: string) {
     var customPrompt = prompt.replace("{days}", days).replace("{people}", people);
-
     const configuration = new Configuration({
         apiKey: "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",
     });
     const openai = new OpenAIApi(configuration);
 
-    const completion = await openai.createCompletion({
-        model: "text-davinci-003",
-        prompt: customPrompt,
+    const completion = await openai.createChatCompletion({
+        model: "gpt-3.5-turbo",
+        messages: [
+            {role: "system", content: "You are a helpful assistant."},
+            {role: "user", content: customPrompt}],
         temperature: 0.5,
         max_tokens: 1024
     });
-    console.log(completion.data);
+    console.log(JSON.stringify(completion.data));
 
-    return createObject(completion.data.choices[0].text);
+    return createObject(completion.data.choices[0].message?.content);
 }
 
 export async function GetMealPlanSimple() {

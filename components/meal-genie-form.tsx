@@ -5,7 +5,7 @@ import {
     Input,
 } from 'semantic-ui-react'
 import React, { useState } from "react";
-import { GptResult } from '@/app/api/mealplan/route';
+import { GptResult } from '../pages/api/mealplan';
 
 export type Values = {
     days?: number,
