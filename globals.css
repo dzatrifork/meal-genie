@@ -1,6 +1,7 @@
 
 body {
-    background: #439DE1 !important
+    background: rgb(34,193,195) !important;
+    background: linear-gradient(0deg, rgba(34,193,195,1) 0%, rgba(67,157,225,1) 100%) !important;
 }
 
 .u-p-15 {

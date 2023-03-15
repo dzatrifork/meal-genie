@@ -63,7 +63,7 @@ export default function MealGenie() {
 
 
   return <>
-    <div className="ui fixed inverted menu teal massive">
+    <div className="ui fixed inverted menu blue massive">
       <div className="ui container">
         <a href="" className="header item">
           Meal Genie
