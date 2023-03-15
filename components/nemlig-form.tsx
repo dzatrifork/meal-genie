@@ -35,7 +35,6 @@ const NemligForm = (props: PropsType) => {
         user: undefined,
         pwd: undefined,
     });
-    const [valid, setValid] = useState<boolean>(false)
 
 
 
@@ -51,19 +50,14 @@ const NemligForm = (props: PropsType) => {
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setValues({ ...values, [event.target.name]: event.target.value });
-        setValid(validate())
-    }
-
-    const validate = () => {
-        return values.pwd != null && values.user != null;
     }
 
     return <>
         <Card.Content>
             <Form onSubmit={handleSubmit} loading={loading}>
-                <Form.Field label="Bruger" type="text" control={Input} onChange={handleChange} name="user" />
-                <Form.Field label="Password" type="password" control={Input} onChange={handleChange} name="pwd" />
-                <Form.Field disabled={!valid} control={Button}>Nemligfy!</Form.Field>
+                <Form.Field label="Bruger" type="email" control={Input} onChange={handleChange} name="user" required/>
+                <Form.Field label="Password" type="password" control={Input} onChange={handleChange} name="pwd" required/>
+                <Form.Field control={Button}>Nemligfy!</Form.Field>
             </Form>
         </Card.Content>
     </>;
