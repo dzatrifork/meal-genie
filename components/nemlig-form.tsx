@@ -8,14 +8,11 @@ import {
 import { GptResult } from '../pages/api/mealplan';
 
 export type Values = {
-    days?: number,
-    persons?: number,
+    user?: string,
+    pwd?: string,
 }
 
-export interface PropsType {
-    result: (result: GptResult | null) => void
-    loading: (result: boolean) => void
-}
+export interface PropsType { }
 
 export interface RefType {
     result: GptResult | null;
@@ -30,49 +27,43 @@ const fetcher = (url: string, body: string) => fetch(url, {
     }
 }).then((res) => res.json())
 
-const MealGenieForm = (props: PropsType) => {
+const NemligForm = (props: PropsType) => {
     const [loading, setLoading] = useState<boolean>(false);
     const [values, setValues] = useState<Values>({
-        days: undefined,
-        persons: undefined
+        user: undefined,
+        pwd: undefined,
     });
+    const [valid, setValid] = useState<boolean>(false)
 
 
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         setLoading(true);
-        props.loading(true);
         event.preventDefault();
-        console.log(values)
-        if (values.days == null || values.persons == null) {
-            setLoading(false);
-            return;
-        }
-
-        const result: GptResult = await fetcher('/api/mealplan', JSON.stringify({ days: values.days, persons: values.persons }))
-            .catch((e: Error) => e);
-
-        props.result(result);
-        props.loading(false);
+        console.log(values);
+        await new Promise( resolve => setTimeout(resolve, 2000) );
         setLoading(false);
     }
 
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setValues({ ...values, [event.target.name]: event.target.value });
+        setValid(validate())
+    }
+
+    const validate = () => {
+        return values.pwd != null && values.user != null;
     }
 
     return <>
         <Card.Content>
             <Form onSubmit={handleSubmit} loading={loading}>
-                <Form.Group>
-                    <Form.Field label="Dage" type="number" control={Input} onChange={handleChange} name="days" />
-                    <Form.Field label="Personer" type="number" control={Input} onChange={handleChange} name="persons" />
-                </Form.Group>
-                <Form.Field control={Button}>Opret madplan</Form.Field>
+                <Form.Field label="Bruger" type="text" control={Input} onChange={handleChange} name="user" />
+                <Form.Field label="Password" type="password" control={Input} onChange={handleChange} name="pwd" />
+                <Form.Field disabled={!valid} control={Button}>Nemligfy!</Form.Field>
             </Form>
         </Card.Content>
     </>;
 }
 
-export default MealGenieForm;
+export default NemligForm;

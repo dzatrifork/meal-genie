@@ -1,13 +1,15 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { Configuration, OpenAIApi } from "openai";
 
-const prompt = "Make a {days} day food plan for {people} people. List the mealplan. Then list a summary of all the needed ingredients. Present the ingredients in CSV-format starting with $start$ and ending with $end$. Result should be in danish."
-
-const gptResult = "Mealplan: Day 1: Morgenmad: Havregryn med mælk og frugt Frokost: Sandwich med kylling, salat og mayonnaise Aftensmad: Kylling med ris og grøntsager Day 2: Morgenmad: Æg og bacon med brød Frokost: Grøn salat med kylling og dressing Aftensmad: Fiskefilet med kartofler og salat Ingredients Summary: $start$Mælk, Havregryn, Frugt, Kylling, Salat, Mayonnaise, Ris, Grøntsager, Æg, Bacon, Brød, Dressing, Fiskefilet, Kartofler$end$"
+const prompt = "Make a {days} day food plan for {people} people, with breakfast, lunch and dinner. List the mealplan. Then list a summary of all the needed ingredients. Present the ingredients in json-format as a list with form {name, quantity, unit}. End the result with \"endResult\" Result should be in danish."
 
 export type GptResult = {
     plan: string,
-    ingredients: Array<string> 
+    ingredients: Array<{
+        navn: string,
+        mængde: string,
+        enhed: string
+    }> 
 }
 
 type GptRequest = NextApiRequest & {
@@ -37,7 +39,7 @@ async function GetMealPlan(days: string, people: string) {
         messages: [
             {role: "system", content: "You are a helpful assistant."},
             {role: "user", content: customPrompt}],
-        temperature: 0.5,
+        temperature: 0.2,
         max_tokens: 1024
     });
     console.log(JSON.stringify(completion.data));
@@ -45,17 +47,14 @@ async function GetMealPlan(days: string, people: string) {
     return createObject(completion.data.choices[0].message?.content);
 }
 
-export async function GetMealPlanSimple() {
-    return createObject(gptResult);
-}
-
 function createObject(gptResponse?: string) {
     if(gptResponse == null) {
         return null;
     }
-    var split = gptResponse.split("$start$");
+    var split = gptResponse.split("Ingredienser:");
     var plan = split[0];
-    var ingredients = split[1].split("$end$")[0].split(",");
+    console.log(split[1].split("endResult")[0].trim());
+    let ingredients = JSON.parse(split[1].split("endResult")[0].trim());
     const result: GptResult = {
         plan: plan,
         ingredients: ingredients 
