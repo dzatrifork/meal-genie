@@ -39,7 +39,7 @@ async function GetMealPlan(body: Params) {
         .replace("{meals}", getMeals(body));
 
     const configuration = new Configuration({
-        apiKey: "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",
+        apiKey: process.env.OPENAI_API_KEY,
     });
     const openai = new OpenAIApi(configuration);
 
