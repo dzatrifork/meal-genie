@@ -3,16 +3,18 @@ import { parse } from "path";
 
 const API_ROOT = 'https://www.nemlig.com/webapi'
 
-type NemligProduct = {
+export type NemligProduct = {
     Id: string,
-    Name: string
+    Name: string,
+    GptName: string
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     const productList: Array<NemligProduct> = [];
     for (let index = 0; index < req.body.productNames.length; index++) {
         const element = req.body.productNames[index];
-        productList.push(await GetProductId(element));
+        const product = await GetProductId(element);
+        productList.push(product);
     }
     const loginCookie = await login(req.body.username, req.body.password);
     if (loginCookie === undefined) {
@@ -21,10 +23,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     for (let index = 0; index < productList.length; index++) {
         const element: NemligProduct = productList[index];
-        await addToBasket(loginCookie, element.Id);
+        if (element.Id !== "") {
+            await addToBasket(loginCookie, element.Id);
+        }
     }
 
-    return res.status(200).json("result");
+    console.log("###########################################")
+    console.log(productList);
+    return res.status(200).json(productList);
 }
 
 async function addToBasket(cookie: string, productId: string) {
@@ -99,11 +105,17 @@ function getCookie(cookies: string) {
 async function GetProductId(productName: string) {
     const trimName = productName.trim();
     console.log(trimName)
-    const path = '/s/0/1/0/Search/Search?query=';
-    const result = await (await fetch(API_ROOT + path + trimName)).json();
-    const parsed: NemligProduct = {Id: result.Products.Products[0].Id, Name: result.Products.Products[0].Name};
-    console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%");
-    console.log(parsed);
-    console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%");
-    return parsed;
+    try {
+        const path = '/s/0/1/0/Search/Search?query=';
+        const result = await (await fetch(API_ROOT + path + trimName)).json();
+        const parsed: NemligProduct = {Id: result.Products.Products[0].Id, Name: result.Products.Products[0].Name, GptName: productName};
+        console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%");
+        console.log(parsed);
+        console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%");
+        return parsed;
+    } catch (error) {
+        const parsed: NemligProduct = {Id: "", Name: "", GptName: productName};
+        return parsed;
+    }
+    
 }

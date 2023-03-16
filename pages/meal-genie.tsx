@@ -5,6 +5,7 @@ import MealGenieForm, { RefType } from '../components/meal-genie-form';
 import NemligForm from '../components/nemlig-form';
 import '../semantic/dist/semantic.min.css';
 import { GptResult } from './api/mealplan';
+import { NemligProduct } from './api/nemlig';
 
 function Result(props: { result: GptResult | null, loading: boolean }) {
   if (props.loading) {
@@ -57,10 +58,29 @@ function Result(props: { result: GptResult | null, loading: boolean }) {
   </Item.Group>
 }
 
+function NemligTable(props: {nemligResult: Array<NemligProduct>}) {
+  return <Table celled striped>
+      <Table.Header>
+        <Table.Row>
+          <Table.HeaderCell colSpan='2'>Bestillinger</Table.HeaderCell>
+        </Table.Row>
+      </Table.Header>
+      <Table.Body>
+        {props.nemligResult.map(ing =>
+      <Table.Row warning={ing.Id === ""}>
+        <Table.Cell>{ing.GptName}</Table.Cell>
+        <Table.Cell>{ing.Name === "" ? "IKKE FUNDET" : ing.Name}</Table.Cell>
+      </Table.Row>
+       )}
+      </Table.Body>
+</Table>
+}
+
 export default function MealGenie() {
   const mealGenieRef = useRef<RefType>(null);
   const [result, setResult] = useState<GptResult | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const [nemligResult, setNemligResult] = useState<Array<NemligProduct> | null>(null);
 
 
   return <>
@@ -98,7 +118,7 @@ export default function MealGenie() {
             </Card.Content>
             { result != null 
             ? 
-            <NemligForm mealPlan={result}></NemligForm> 
+            <NemligForm mealPlan={result} nemligResult={setNemligResult}></NemligForm> 
             : 
             <Card.Content>
               <Message warning>
@@ -108,11 +128,13 @@ export default function MealGenie() {
                 </Message>
             </Card.Content>
             }
-            
+            {nemligResult != null ?
+            <NemligTable nemligResult={nemligResult}></NemligTable>
+            : <></>
+            }
           </Card>
         </Grid.Column>
       </Grid>
-
 
     </div>
   </>
