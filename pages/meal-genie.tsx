@@ -1,11 +1,12 @@
 import { useRef, useState } from 'react';
-import { Button, Card, Container, Form, Grid, Header, Item, List, Message, Placeholder, Table } from 'semantic-ui-react';
+import { Button, Card, Container, Form, Grid, Header, Item, List, Menu, Message, Placeholder, Table } from 'semantic-ui-react';
 import Image from 'next/image';
 import MealGenieForm, { RefType } from '../components/meal-genie-form';
 import NemligForm from '../components/nemlig-form';
 import '../semantic/dist/semantic.min.css';
 import { GptResult } from './api/mealplan';
 import { NemligProduct, NemligResult } from './api/nemlig';
+import Head from 'next/head';
 
 function Result(props: { result: GptResult | null, loading: boolean }) {
   if (props.loading) {
@@ -87,26 +88,26 @@ function NemligTable(props: { nemligResult: NemligResult, nemligLoading: boolean
     </Placeholder>
   }
   return <div>
-  <Table celled striped>
+    <Table celled striped>
       <Table.Header>
         <Table.Row>
           <Table.HeaderCell colSpan='2'>Antal produkter: {props.nemligResult.ItemsInBasket}, Total pris: {props.nemligResult.TotalPrice} kr.
-          <Form action="https://www.nemlig.com/basket">
-            <Form.Field control={Button}>Nemlig<i>buy</i>!</Form.Field>
-          </Form>
+            <Form action="https://www.nemlig.com/basket">
+              <Form.Field control={Button}>Nemlig<i>buy</i>!</Form.Field>
+            </Form>
           </Table.HeaderCell>
         </Table.Row>
       </Table.Header>
       <Table.Body>
         {props.nemligResult.Products.map(ing =>
-      <Table.Row warning={ing.Id === ""}>
-        <Table.Cell>{ing.GptName}</Table.Cell>
-        <Table.Cell>{ing.Name === "" ? "IKKE FUNDET" : ing.Name}</Table.Cell>
-      </Table.Row>
-       )}
+          <Table.Row warning={ing.Id === ""}>
+            <Table.Cell>{ing.GptName}</Table.Cell>
+            <Table.Cell>{ing.Name === "" ? "IKKE FUNDET" : ing.Name}</Table.Cell>
+          </Table.Row>
+        )}
       </Table.Body>
-  </Table>
-</div>
+    </Table>
+  </div>
 }
 
 export default function MealGenie() {
@@ -115,16 +116,19 @@ export default function MealGenie() {
   const [loading, setLoading] = useState<boolean>(false);
   const [nemligResult, setNemligResult] = useState<NemligResult | null>(null);
   const [nemligLoading, setNemligloading] = useState<boolean>(false);
+  const [model, setModel] = useState<string>('gpt3');
 
 
   return <>
-    <div className="ui fixed inverted menu blue massive">
-      <div className="ui container">
-        <a href="" className="header item">
-          Meal Genie
-        </a>
-      </div>
-    </div>
+    <Head>
+      <link rel="icon" type="image/png" sizes="32x32" href="/images/logo.png"/>
+      <meta name="title" content="MealGenie"/>
+    </Head>
+    <Menu fixed='top' inverted color='blue'>
+      <Menu.Item header><Image src={'/images/logo_transparent.svg'}  style={{width: '45px !important', marginRight: '15px'}} alt="''" width={45} height={45}></Image>Meal Genie</Menu.Item>
+      <Menu.Item onClick={() => setModel('gpt3')} active={model === 'gpt3'}>GPT3.5</Menu.Item>
+      <Menu.Item onClick={() => setModel('davinci')} active={model === 'davinci'}>DaVinci</Menu.Item>
+    </Menu>
 
     <div className="ui main container">
       <Grid>
@@ -135,7 +139,7 @@ export default function MealGenie() {
                 Definer din madplan!
               </Card.Header>
             </Card.Content>
-            <MealGenieForm result={setResult} loading={setLoading}></MealGenieForm>
+            <MealGenieForm model={model} result={setResult} loading={setLoading}></MealGenieForm>
             <Card.Content extra>
               <Container className='u-p-15'>
                 <Result result={result} loading={loading}></Result>

@@ -24,6 +24,10 @@ export type Values = {
         value?: string,
         days?: number
     }[]
+    types: {
+        value?: string,
+        days?: number
+    }[]
 }
 
 const ingredientOptions = [
@@ -34,11 +38,20 @@ const ingredientOptions = [
     { key: 'curry', text: 'Karry', value: 'curry' },
 ]
 
+const typeOptions = [
+    { key: '1', text: 'Thai', value: 'thai food' },
+    { key: '2', text: 'Italiansk', value: 'italian food' },
+    { key: '3', text: 'Fransk', value: 'french food' },
+    { key: '4', text: 'Simremad', value: 'simmer food' },
+    { key: '5', text: 'Fancy', value: 'fancy food' },
+]
+
 const modelOptions = [{key: '1', text: "GPT3", value: 'gpt3'},{key: '2', text: "DaVinci", value: 'davinci'}];
 
 export interface PropsType {
-    result: (result: GptResult | null) => void
-    loading: (result: boolean) => void
+    result: (result: GptResult | null) => void,
+    loading: (result: boolean) => void,
+    model: string,
 }
 
 export interface RefType {
@@ -63,10 +76,9 @@ const MealGenieForm = (props: PropsType) => {
         lunch: false,
         dinner: true,
         preferences: undefined,
-        ingredients: []
+        ingredients: [],
+        types: []
     });
-    
-    const [model, setModel] = useState<string>('gpt3');
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         setLoading(true);
@@ -86,7 +98,8 @@ const MealGenieForm = (props: PropsType) => {
             dinner: values.dinner,
             preferences: values.preferences,
             ingredients: values.ingredients,
-            model: model
+            types: values.types,
+            model: props.model
         }))
             .catch((e: Error) => e);
 
@@ -134,6 +147,38 @@ const MealGenieForm = (props: PropsType) => {
         ingredients.push({ value: undefined, days: undefined });
         console.log(ingredients);
         setValues({ ...values, ingredients: ingredients });
+    }
+
+    const handleChangeTypeValue = (data: DropdownProps, index: number) => {
+        const types = values.types;
+        const type = types[index];
+        type.value = data.value as string;
+        types[index] = type;
+        setValues({ ...values, types: types });
+        console.log(values.types)
+    }
+
+    const handleChangeTypeDays = (event: React.ChangeEvent<HTMLInputElement>, index: number) => {
+        const types = values.types;
+        const type = types[index];
+        type.days = Number(event.target.value);
+        types[index] = type;
+        setValues({ ...values, types: types });
+        console.log(values.types)
+    }
+
+    const handleDeleteType = (index: number) => {
+        const types = values.types;
+        types.splice(index, 1);
+        console.log(types);
+        setValues({ ...values, types: types });
+    }
+
+    const handleAddType = () => {
+        const types = values.types;
+        types.push({ value: undefined, days: undefined });
+        console.log(types);
+        setValues({ ...values, types: types });
     }
 
     const handleChangeCheckbox = (event: React.FormEvent<HTMLInputElement>, data: CheckboxProps) => {
@@ -184,9 +229,22 @@ const MealGenieForm = (props: PropsType) => {
                     </>
                     )
                 }
-                <Divider></Divider>                  
-                <Form.Select label="ChatGPT Model" options={modelOptions} onChange={(event: any, props: DropdownProps) => setModel(props.value)} name="value" required/>
-                <Form.Field control={Button}>Opret madplan</Form.Field>
+                <Divider></Divider>
+                <Button onClick={() => handleAddType()}><Icon name="plus"></Icon>Tilføj Type</Button>
+                {values.types.length > 0 ? <Header as='h6' content="Jeg vil gerne have DAGE har TYPE ret"></Header> : <></>}
+                {values.types.map((type, index) =>
+                    <>
+                        <Divider hidden></Divider>
+                        <Form.Group widths={2}>
+                            <Form.Select fluid label="Type" options={typeOptions} onChange={(_: any, props: DropdownProps) => handleChangeTypeValue(props, index)} name="value" required/>
+                            <Form.Field fluid label="Dage" type="number" control={Input} value={type.days} onChange={(event: React.ChangeEvent<HTMLInputElement>, props: DropdownProps) => handleChangeTypeDays(event, index)} name="days" required/>
+                            <Button className="delete-btn" icon='trash' negative circular onClick={() => handleDeleteType(index)}></Button>
+                        </Form.Group>
+                    </>
+                    )
+                }
+                <Divider></Divider>               
+                <Form.Field type="submit" control={Button}>Opret madplan</Form.Field>
             </Form>
         </Card.Content>
     </>;

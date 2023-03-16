@@ -1,9 +1,9 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { ChatCompletionRequestMessage, Configuration, CreateChatCompletionResponse, CreateCompletionResponse, OpenAIApi } from "openai";
 
-const prompt = "Make a {days} day food plan for {people} people, with {meals}. {preferences} {ingredients} "
-const promptGPT3Ingredients = ". Your response should be in JSON format with three parameters \"name\", \"quantity\" and \"unit\" for each ingredient ex. [{'name': 'Flour', 'quantity':'1', 'unit': 'kg'}]. Values should be in danish. "
-const promptGBT3Plan = "Summarize the mealplan as a list with an entry for each day. Your response should be in JSON format with two parameters \"day\" and \"description\" for each day ex. [{'day': 'Day 1', 'description': '...'}]. Values should be in danish. "
+const prompt = "Make a {days} day food plan for {people} people, with {meals}. {preferences} {ingredients} {types} "
+const promptGPT3Ingredients = "Summarize the Ingredients as a list with an entry for each ingredient. Your response should be in JSON format with three parameters \"name\", \"quantity\" and \"unit\" for each ingredient ex. [{\"name\": \"Flour\", \"quantity\":\"1\", \"unit\": \"kg\"}]. Values should be in danish. "
+const promptGBT3Plan = "Summarize the mealplan as a list with an entry for each day. Your response should be in JSON format with two parameters \"day\" and \"description\" for each day ex. [{\"day\": \"Day 1\", \"description\": \"...\"}]. Values should be in danish. "
 const promptDavinci = "Summarize the mealplan as a list with an entry for each day as well as all the ingredients in json-format as a list. Your response should be in JSON format ex. {\"plan\": [{\"day\": \"Day 1\", \"description\": \"...\"}], \"ingredients\": [{\"name\": \"Flour\", \"quantity\":\"1\", \"unit\": \"kg\"}]}. Values should be in danish. "
 
 export type GptResult = {
@@ -31,6 +31,10 @@ type Params = {
     ingredients: {
         value?: string,
         days?: number
+    }[],
+    types: {
+        value?: string,
+        days?: number
     }[]
 }
 
@@ -52,7 +56,8 @@ async function GetMealPlan(body: Params) {
         .replace("{people}", body.persons)
         .replace("{meals}", getMeals(body))
         .replace("{preferences}", getPreferences(body))
-        .replace("{ingredients}", getIngredientPreferences(body));
+        .replace("{ingredients}", getIngredientPreferences(body)) 
+        .replace("{types}", getTypesPreferences(body));
 
     console.log(customPrompt);
 
@@ -100,7 +105,7 @@ async function createGPT35Completion(customPrompt: string, openai: OpenAIApi) {
     const mealPlan = await openai.createChatCompletion({
         model: "gpt-3.5-turbo",
         messages: messages,
-        temperature: 0.2,
+        temperature: 0.5,
         max_tokens: 1024
     });
 
@@ -152,61 +157,9 @@ async function createGPT35Completion(customPrompt: string, openai: OpenAIApi) {
                 completions
             }
         }
-
     }
 
     throw Error('Failed to create completion');
-}
-
-function createObject(gptResponse?: string) {
-    if (gptResponse == null) {
-        return null;
-    }
-    var split = gptResponse.split("$startIngredients");
-    let ingredientsStr = split[1].split("$endIngredients")[0].trim()
-        .replaceAll('name', 'navn')
-        .replaceAll('quantity', 'mængde')
-        .replaceAll('unit', 'enhed');
-    console.log(ingredientsStr)
-    if (!ingredientsStr.startsWith('[')) {
-        ingredientsStr = '[' + ingredientsStr;
-    }
-    if (ingredientsStr.endsWith(',')) {
-        ingredientsStr.slice(1, -1)
-    }
-    if (!ingredientsStr.endsWith(']')) {
-        ingredientsStr += ']';
-    }
-    console.log(ingredientsStr)
-    const ingredients = JSON.parse(ingredientsStr);
-
-    let planStr = gptResponse
-        .split("$startMealPlan")[1]
-        .split("$endMealPlan")[0]
-        .trim()
-        .replaceAll('day', 'dag')
-        .replaceAll('description', 'beskrivelse');
-
-    if (!planStr.startsWith('[')) {
-        planStr = '[' + planStr;
-    }
-    if (planStr.endsWith(',')) {
-        planStr.slice(1, -1)
-    }
-    if (!planStr.endsWith(']')) {
-        planStr += ']';
-    }
-    console.log(planStr)
-
-    const plan = JSON.parse(planStr);
-
-    const result: GptResult = {
-        planStr: '',
-        plan: plan,
-        ingredients: ingredients
-    }
-    console.log("ingredients:" + JSON.stringify(ingredients));
-    return result;
 }
 
 function getMeals(params: Params): string {
@@ -242,6 +195,16 @@ function getIngredientPreferences(params: Params): string {
     }
 
     const i = params.ingredients.map((v) => `The mealplan must include ${v.value} for ${v.days} days out of ${params.days} days`)
+
+    return i.join('. ') + '. '
+}
+
+function getTypesPreferences(params: Params): string {
+    if (params.types == null || params.types.length === 0) {
+        return '';
+    }
+
+    const i = params.types.map((v) => `The mealplan must include ${v.days} days with ${v.value} out of ${params.days} days`)
 
     return i.join('. ') + '. '
 }
