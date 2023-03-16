@@ -22,6 +22,7 @@ type Params = {
     lunch: boolean,
     dinner: boolean,
     preferences?: string,
+    model: string,
     ingredients: {
         value?: string,
         days?: number
@@ -55,6 +56,25 @@ async function GetMealPlan(body: Params) {
     });
     const openai = new OpenAIApi(configuration);
 
+    if (body.model === "davinci") {
+        return await createDavinciCompletion(customPrompt, openai);
+    } else {
+        return await createGPT35Completion(customPrompt, openai);
+    }
+}
+
+async function createDavinciCompletion(customPrompt: string, openai: OpenAIApi) {
+    const completion = await openai.createCompletion({
+        model: "text-davinci-003",
+        prompt: customPrompt,
+        temperature: 0.2,
+        max_tokens: 1024
+    });
+    console.log(JSON.stringify(completion.data));
+    return createObject(completion.data.choices[0].text);
+}
+
+async function createGPT35Completion(customPrompt: string, openai: OpenAIApi) {
     const completion = await openai.createChatCompletion({
         model: "gpt-3.5-turbo",
         messages: [
@@ -64,7 +84,6 @@ async function GetMealPlan(body: Params) {
         max_tokens: 2048
     });
     console.log(JSON.stringify(completion.data));
-
     return createObject(completion.data.choices[0].message?.content);
 }
 

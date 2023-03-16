@@ -34,6 +34,8 @@ const ingredientOptions = [
     { key: 'curry', text: 'Karry', value: 'curry' },
 ]
 
+const modelOptions = [{key: '1', label: "GPT3", value: 'gpt3'},{key: '2', label: "DaVinci", value: 'davinci'}];
+
 export interface PropsType {
     result: (result: GptResult | null) => void
     loading: (result: boolean) => void
@@ -63,8 +65,8 @@ const MealGenieForm = (props: PropsType) => {
         preferences: undefined,
         ingredients: []
     });
-
-
+    
+    const [model, setModel] = useState<string>('gpt3');
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         setLoading(true);
@@ -181,7 +183,7 @@ const MealGenieForm = (props: PropsType) => {
                     </>
                     )
                 }
-                <Divider></Divider>
+                <Divider></Divider>  
                 <Form.Field control={Button}>Opret madplan</Form.Field>
             </Form>
         </Card.Content>
