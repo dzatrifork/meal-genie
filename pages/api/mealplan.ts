@@ -30,7 +30,7 @@ export default async function handler(req: GptRequest, res: NextApiResponse) {
 async function GetMealPlan(days: string, people: string) {
     var customPrompt = prompt.replace("{days}", days).replace("{people}", people);
     const configuration = new Configuration({
-        apiKey: "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",
+        apiKey: process.env.OPENAI_API_KEY,
     });
     const openai = new OpenAIApi(configuration);
 
