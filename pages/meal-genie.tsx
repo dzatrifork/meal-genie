@@ -5,7 +5,7 @@ import MealGenieForm, { RefType } from '../components/meal-genie-form';
 import NemligForm from '../components/nemlig-form';
 import '../semantic/dist/semantic.min.css';
 import { GptResult } from './api/mealplan';
-import { NemligProduct } from './api/nemlig';
+import { NemligProduct, NemligResult } from './api/nemlig';
 
 function Result(props: { result: GptResult | null, loading: boolean }) {
   if (props.loading) {
@@ -58,15 +58,15 @@ function Result(props: { result: GptResult | null, loading: boolean }) {
   </Item.Group>
 }
 
-function NemligTable(props: {nemligResult: Array<NemligProduct>}) {
+function NemligTable(props: {nemligResult: NemligResult}) {
   return <Table celled striped>
       <Table.Header>
         <Table.Row>
-          <Table.HeaderCell colSpan='2'>Bestillinger</Table.HeaderCell>
+          <Table.HeaderCell colSpan='2'>Antal produkter: {props.nemligResult.ItemsInBasket}, Total pris: {props.nemligResult.TotalPrice} kr.</Table.HeaderCell>
         </Table.Row>
       </Table.Header>
       <Table.Body>
-        {props.nemligResult.map(ing =>
+        {props.nemligResult.Products.map(ing =>
       <Table.Row warning={ing.Id === ""}>
         <Table.Cell>{ing.GptName}</Table.Cell>
         <Table.Cell>{ing.Name === "" ? "IKKE FUNDET" : ing.Name}</Table.Cell>
@@ -80,7 +80,7 @@ export default function MealGenie() {
   const mealGenieRef = useRef<RefType>(null);
   const [result, setResult] = useState<GptResult | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
-  const [nemligResult, setNemligResult] = useState<Array<NemligProduct> | null>(null);
+  const [nemligResult, setNemligResult] = useState<NemligResult | null>(null);
 
 
   return <>

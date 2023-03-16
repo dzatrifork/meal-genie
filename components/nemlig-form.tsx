@@ -6,7 +6,7 @@ import {
     Input
 } from 'semantic-ui-react';
 import { GptResult } from '../pages/api/mealplan';
-import { NemligProduct } from "../pages/api/nemlig";
+import { NemligProduct, NemligResult } from "../pages/api/nemlig";
 
 export type Values = {
     user?: string,
@@ -15,7 +15,7 @@ export type Values = {
 
 export interface PropsType {
   mealPlan: GptResult,
-  nemligResult: (result: Array<NemligProduct> | null) => void
+  nemligResult: (result: NemligResult | null) => void
 }
 
 export interface RefType {

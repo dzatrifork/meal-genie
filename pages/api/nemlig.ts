@@ -3,6 +3,12 @@ import { parse } from "path";
 
 const API_ROOT = 'https://www.nemlig.com/webapi'
 
+export type NemligResult = {
+    Products: Array<NemligProduct>,
+    ItemsInBasket: string,
+    TotalPrice: string 
+}
+
 export type NemligProduct = {
     Id: string,
     Name: string,
@@ -30,7 +36,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     console.log("###########################################")
     console.log(productList);
-    return res.status(200).json(productList);
+
+    const basket = await getBasket(loginCookie);
+
+    const nemLigResult: NemligResult = {
+        ItemsInBasket: basket.NumberOfProducts,
+        TotalPrice: basket.TotalProductsPrice,
+        Products: productList
+    }
+
+    return res.status(200).json(nemLigResult);
+}
+
+async function getBasket(cookie: string) {
+    const path = "/basket/GetBasket";
+
+    const result = await fetch(API_ROOT + path, {
+        method: "GET",
+        headers: {
+            "Cookie": cookie
+        }
+    });
+    console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%");
+    console.log(result);
+    console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%");
+    return result.json();
 }
 
 async function addToBasket(cookie: string, productId: string) {
@@ -108,7 +138,7 @@ async function GetProductId(productName: string) {
     try {
         const path = '/s/0/1/0/Search/Search?query=';
         const result = await (await fetch(API_ROOT + path + trimName)).json();
-        const parsed: NemligProduct = {Id: result.Products.Products[0].Id, Name: result.Products.Products[0].Name, GptName: productName};
+        const parsed: NemligProduct = {Id: result.Products.Products[0].Id, Name: result.Products.Products[0].Name + ", " + result.Products.Products[0].Description, GptName: productName};
         console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%");
         console.log(parsed);
         console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%");
