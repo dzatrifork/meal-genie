@@ -124,10 +124,11 @@ export default function MealGenie() {
       <link rel="icon" type="image/png" sizes="32x32" href="/images/logo.png"/>
       <meta name="title" content="MealGenie"/>
     </Head>
-    <Menu fixed='top' inverted color='blue'>
+    <Menu fixed='top' inverted secondary color='blue'>
       <Menu.Item header><Image src={'/images/logo_transparent.svg'}  style={{width: '45px !important', marginRight: '15px'}} alt="''" width={45} height={45}></Image>Meal Genie</Menu.Item>
       <Menu.Item onClick={() => setModel('gpt3')} active={model === 'gpt3'}>GPT3.5</Menu.Item>
       <Menu.Item onClick={() => setModel('davinci')} active={model === 'davinci'}>DaVinci</Menu.Item>
+      <Menu.Item disabled></Menu.Item>
     </Menu>
 
     <div className="ui main container">

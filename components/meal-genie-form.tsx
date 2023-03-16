@@ -199,7 +199,7 @@ const MealGenieForm = (props: PropsType) => {
     return <>
         <Card.Content>
             <Form onSubmit={handleSubmit} loading={loading}>
-                <Form.Group>
+                <Form.Group widths={2}>
                     <Form.Field label="Dage" type="number" control={Input} value={values.days} onChange={handleChangeNum} name="days" required />
                     <Form.Field label="Personer" type="number" control={Input} value={values.persons} onChange={handleChangeNum} name="persons" required />
                 </Form.Group>
@@ -210,7 +210,7 @@ const MealGenieForm = (props: PropsType) => {
                     <Form.Checkbox label="Aften" control={Checkbox} checked={values.dinner} onChange={handleChangeCheckbox} name="dinner" />
                 </Form.Group>
                 <Form.Group inline>
-                    <label>Særlige kostpræference?</label>
+                    <label>Særlige kostpræferencer?</label>
                     <Form.Radio label="Ingen" checked={values.preferences == null} value={undefined} onChange={handleChangeRadio} name="preferences" />
                     <Form.Radio label="Vegetar" checked={values.preferences === 'vegetarian'} value='vegetarian' onChange={handleChangeRadio} name="preferences" />
                     <Form.Radio label="Veganer" checked={values.preferences === 'vegan'} value='vegan' onChange={handleChangeRadio} name="preferences" />
