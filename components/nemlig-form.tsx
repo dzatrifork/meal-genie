@@ -16,6 +16,7 @@ export type Values = {
 export interface PropsType {
   mealPlan: GptResult,
   nemligResult: (result: NemligResult | null) => void
+  nemLigloading: (result: boolean) => void
 }
 
 export interface RefType {
@@ -42,11 +43,13 @@ const NemligForm = (props: PropsType) => {
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         setLoading(true);
+        props.nemLigloading(true)
         event.preventDefault();
         console.log(values);
         const names = props.mealPlan.ingredients.map(i => i.navn)
         const nemligResult = await fetcher('api/nemlig', JSON.stringify({username: values.user, password: values.pwd, productNames: names}));
         props.nemligResult(nemligResult);
+        props.nemLigloading(false);
         setLoading(false);
     }
 

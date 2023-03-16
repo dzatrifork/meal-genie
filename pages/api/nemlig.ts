@@ -23,7 +23,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const product = GetProductId(element);
         productPromises.push(product);
     }
-    Promise.all(productPromises).then(products => {
+    await Promise.all(productPromises).then(products => {
         products.forEach(product => productList.push(product))
     });
 

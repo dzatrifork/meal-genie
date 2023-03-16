@@ -58,7 +58,21 @@ function Result(props: { result: GptResult | null, loading: boolean }) {
   </Item.Group>
 }
 
-function NemligTable(props: {nemligResult: NemligResult}) {
+function NemligTable(props: {nemligResult: NemligResult, nemligLoading: boolean}) {
+  if (props.nemligLoading) {
+    return <Placeholder >
+      <Placeholder.Header>
+        <Placeholder.Line />
+        <Placeholder.Line />
+      </Placeholder.Header>
+      <Placeholder.Paragraph>
+        <Placeholder.Line />
+        <Placeholder.Line />
+        <Placeholder.Line />
+        <Placeholder.Line />
+      </Placeholder.Paragraph>
+    </Placeholder>
+  }
   return <Table celled striped>
       <Table.Header>
         <Table.Row>
@@ -81,6 +95,7 @@ export default function MealGenie() {
   const [result, setResult] = useState<GptResult | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [nemligResult, setNemligResult] = useState<NemligResult | null>(null);
+  const [nemligLoading, setNemligloading] = useState<boolean>(false);
 
 
   return <>
@@ -118,7 +133,7 @@ export default function MealGenie() {
             </Card.Content>
             { result != null 
             ? 
-            <NemligForm mealPlan={result} nemligResult={setNemligResult}></NemligForm> 
+            <NemligForm mealPlan={result} nemligResult={setNemligResult} nemLigloading={setNemligloading}></NemligForm> 
             : 
             <Card.Content>
               <Message warning>
@@ -129,7 +144,7 @@ export default function MealGenie() {
             </Card.Content>
             }
             {nemligResult != null ?
-            <NemligTable nemligResult={nemligResult}></NemligTable>
+            <NemligTable nemligResult={nemligResult} nemligLoading={nemligLoading}></NemligTable>
             : <></>
             }
           </Card>
