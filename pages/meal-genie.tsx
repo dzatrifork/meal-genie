@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { Card, Container, Grid, Header, Item, List, Message, Placeholder, Table } from 'semantic-ui-react';
+import { Button, Card, Container, Form, Grid, Header, Item, List, Message, Placeholder, Table } from 'semantic-ui-react';
 import Image from 'next/image';
 import MealGenieForm, { RefType } from '../components/meal-genie-form';
 import NemligForm from '../components/nemlig-form';
@@ -73,10 +73,15 @@ function NemligTable(props: {nemligResult: NemligResult, nemligLoading: boolean}
       </Placeholder.Paragraph>
     </Placeholder>
   }
-  return <Table celled striped>
+  return <div>
+  <Table celled striped>
       <Table.Header>
         <Table.Row>
-          <Table.HeaderCell colSpan='2'>Antal produkter: {props.nemligResult.ItemsInBasket}, Total pris: {props.nemligResult.TotalPrice} kr.</Table.HeaderCell>
+          <Table.HeaderCell colSpan='2'>Antal produkter: {props.nemligResult.ItemsInBasket}, Total pris: {props.nemligResult.TotalPrice} kr.
+          <Form action="https://www.nemlig.com/basket">
+            <Form.Field control={Button}>Nemlig<i>buy</i>!</Form.Field>
+          </Form>
+          </Table.HeaderCell>
         </Table.Row>
       </Table.Header>
       <Table.Body>
@@ -87,7 +92,8 @@ function NemligTable(props: {nemligResult: NemligResult, nemligLoading: boolean}
       </Table.Row>
        )}
       </Table.Body>
-</Table>
+  </Table>
+</div>
 }
 
 export default function MealGenie() {
