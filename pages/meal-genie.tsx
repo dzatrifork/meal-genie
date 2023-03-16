@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
-import { Card, Container, Grid, Header, Item, List, Placeholder, Table } from 'semantic-ui-react';
+import { Card, Container, Grid, Header, Item, List, Message, Placeholder, Table } from 'semantic-ui-react';
+import Image from 'next/image';
 import MealGenieForm, { RefType } from '../components/meal-genie-form';
 import NemligForm from '../components/nemlig-form';
 import '../semantic/dist/semantic.min.css';
@@ -92,7 +93,7 @@ export default function MealGenie() {
           <Card fluid>
             <Card.Content>
               <Header size='small'>
-                Export to Nemlig.com
+                Export to <Image id='nemlig-img' src='/images/nemlig-web-logo.svg' alt={'Nemlig.com'} width={90} height={90}></Image>
               </Header>
             </Card.Content>
             { result != null 
@@ -100,7 +101,11 @@ export default function MealGenie() {
             <NemligForm mealPlan={result}></NemligForm> 
             : 
             <Card.Content>
-              Dan madplan...
+              <Message warning>
+                <Message.Header>Tryk på 'Opret madplan'</Message.Header>
+                <p>Opret madplan før du kan sende til Nemlig.com</p>
+                
+                </Message>
             </Card.Content>
             }
             

@@ -1,34 +1,43 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { Configuration, OpenAIApi } from "openai";
 
-const prompt = "Make a {days} day food plan for {people} people, with breakfast, lunch and dinner. List the mealplan. Then list a summary of all the needed ingredients. Present the ingredients in json-format as a list with form {name, quantity, unit}. End the result with \"endResult\" Result should be in danish."
+const prompt = "Make a {days} day food plan for {people} people, with {meals}. List the mealplan. Then list a summary of all the needed ingredients. Present the ingredients in json-format as a list with form {name, quantity, unit}. Put \"$startIngredients\" before the list og ingredients and end the result with \"$endResult\". Result should be in danish."
 
 export type GptResult = {
     plan: string,
     ingredients: Array<{
         navn: string,
         mængde: string,
-        enhed: string
-    }> 
+        endhed: string
+    }>
+}
+
+type Params = {
+    days: string,
+    persons: string,
+    breakfast: boolean,
+    lunch: boolean,
+    dinner: boolean,
 }
 
 type GptRequest = NextApiRequest & {
-    body: {
-        days: string,
-        persons: string
-    }
+    body: Params
 }
 
 export default async function handler(req: GptRequest, res: NextApiResponse) {
-    const result = await GetMealPlan(req.body.days, req.body.persons);
-    if(result == null) {
+    const result = await GetMealPlan(req.body);
+    if (result == null) {
         return new Response();
     }
     return res.status(201).json(result);
 }
 
-async function GetMealPlan(days: string, people: string) {
-    var customPrompt = prompt.replace("{days}", days).replace("{people}", people);
+async function GetMealPlan(body: Params) {
+    var customPrompt = prompt
+        .replace("{days}", body.days)
+        .replace("{people}", body.persons)
+        .replace("{meals}", getMeals(body));
+
     const configuration = new Configuration({
         apiKey: "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",
     });
@@ -37,8 +46,8 @@ async function GetMealPlan(days: string, people: string) {
     const completion = await openai.createChatCompletion({
         model: "gpt-3.5-turbo",
         messages: [
-            {role: "system", content: "You are a helpful assistant."},
-            {role: "user", content: customPrompt}],
+            { role: "system", content: "You are a helpful assistant." },
+            { role: "user", content: customPrompt }],
         temperature: 0.2,
         max_tokens: 1024
     });
@@ -48,17 +57,39 @@ async function GetMealPlan(days: string, people: string) {
 }
 
 function createObject(gptResponse?: string) {
-    if(gptResponse == null) {
+    if (gptResponse == null) {
         return null;
     }
-    var split = gptResponse.split("Ingredienser:");
+    var split = gptResponse.split("$startIngredients");
     var plan = split[0];
-    console.log(split[1].split("endResult")[0].trim());
-    let ingredients = JSON.parse(split[1].split("endResult")[0].trim());
+    const ingredientsStr = split[1].split("$endResult")[0].trim()
+        .replace('\"name\":', '\"navn\":')
+        .replace('\"quantity\":', '\"mængde\":')
+        .replace('\"unit\":', '\"endhed\":');
+    const ingredients = JSON.parse(ingredientsStr);
     const result: GptResult = {
         plan: plan,
-        ingredients: ingredients 
-    } 
-    console.log("ingredients:" + ingredients);
+        ingredients: ingredients
+    }
+    console.log("ingredients:" + JSON.stringify(ingredients));
     return result;
+}
+
+function getMeals(params: Params): string {
+    let res = [];
+    if (params.breakfast) {
+        res.push('breakfast');
+    }
+    if (params.lunch) {
+        res.push('lunch');
+    }
+    if (params.dinner) {
+        res.push('evening meal');
+    }
+
+    if (res.length === 1) {
+        return 'only ' + res[0];
+    } else {
+        return `${res.slice(0, -1).join(", ")} and ${res.slice(-1)[0]}`;
+    }
 }

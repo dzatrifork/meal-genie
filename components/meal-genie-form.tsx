@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import {
     Button,
     Card,
+    Checkbox,
+    CheckboxProps,
     Form,
     Input
 } from 'semantic-ui-react';
@@ -10,6 +12,9 @@ import { GptResult } from '../pages/api/mealplan';
 export type Values = {
     days?: number,
     persons?: number,
+    breakfast: boolean,
+    lunch: boolean,
+    dinner: boolean,
 }
 
 export interface PropsType {
@@ -34,7 +39,10 @@ const MealGenieForm = (props: PropsType) => {
     const [loading, setLoading] = useState<boolean>(false);
     const [values, setValues] = useState<Values>({
         days: undefined,
-        persons: undefined
+        persons: undefined,
+        breakfast: false,
+        lunch: false,
+        dinner: true,
     });
 
 
@@ -49,7 +57,13 @@ const MealGenieForm = (props: PropsType) => {
             return;
         }
 
-        const result: GptResult = await fetcher('/api/mealplan', JSON.stringify({ days: values.days, persons: values.persons }))
+        const result: GptResult = await fetcher('/api/mealplan', JSON.stringify({ 
+            days: values.days, 
+            persons: values.persons,
+            breakfast: values.breakfast,
+            lunch: values.lunch,
+            dinner: values.dinner,
+        }))
             .catch((e: Error) => e);
 
         props.result(result);
@@ -62,12 +76,26 @@ const MealGenieForm = (props: PropsType) => {
         setValues({ ...values, [event.target.name]: event.target.value });
     }
 
+    const handleChangeCheckbox = (event: React.FormEvent<HTMLInputElement>, data: CheckboxProps) => {
+        if (data.name != null) {
+            console.log(data)
+            console.log(event)
+            setValues({ ...values, [data.name]: data.checked });
+        }
+    }
+
     return <>
         <Card.Content>
             <Form onSubmit={handleSubmit} loading={loading}>
                 <Form.Group>
-                    <Form.Field label="Dage" type="number" control={Input} onChange={handleChange} name="days" />
-                    <Form.Field label="Personer" type="number" control={Input} onChange={handleChange} name="persons" />
+                    <Form.Field label="Dage" type="number" control={Input} onChange={handleChange} name="days" required/>
+                    <Form.Field label="Personer" type="number" control={Input} onChange={handleChange} name="persons" required/>
+                </Form.Group>
+                <Form.Group >                    
+                    <label>Hvilke måltider?</label>
+                    <Form.Checkbox label="Morgen" control={Checkbox} checked={values.breakfast} onChange={handleChangeCheckbox} name="breakfast"/>
+                    <Form.Checkbox label="Middag" control={Checkbox} checked={values.lunch} onChange={handleChangeCheckbox} name="lunch"/>
+                    <Form.Checkbox label="Aften" control={Checkbox} checked={values.dinner} onChange={handleChangeCheckbox} name="dinner"/>
                 </Form.Group>
                 <Form.Field control={Button}>Opret madplan</Form.Field>
             </Form>
