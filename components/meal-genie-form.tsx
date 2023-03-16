@@ -34,7 +34,7 @@ const ingredientOptions = [
     { key: 'curry', text: 'Karry', value: 'curry' },
 ]
 
-const modelOptions = [{key: '1', label: "GPT3", value: 'gpt3'},{key: '2', label: "DaVinci", value: 'davinci'}];
+const modelOptions = [{key: '1', text: "GPT3", value: 'gpt3'},{key: '2', text: "DaVinci", value: 'davinci'}];
 
 export interface PropsType {
     result: (result: GptResult | null) => void
@@ -85,7 +85,8 @@ const MealGenieForm = (props: PropsType) => {
             lunch: values.lunch,
             dinner: values.dinner,
             preferences: values.preferences,
-            ingredients: values.ingredients
+            ingredients: values.ingredients,
+            model: model
         }))
             .catch((e: Error) => e);
 
@@ -183,7 +184,8 @@ const MealGenieForm = (props: PropsType) => {
                     </>
                     )
                 }
-                <Divider></Divider>  
+                <Divider></Divider>                  
+                <Form.Select label="ChatGPT Model" options={modelOptions} onChange={(event: any, props: DropdownProps) => setModel(props.value)} name="value" required/>
                 <Form.Field control={Button}>Opret madplan</Form.Field>
             </Form>
         </Card.Content>

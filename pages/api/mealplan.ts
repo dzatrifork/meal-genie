@@ -68,7 +68,7 @@ async function createDavinciCompletion(customPrompt: string, openai: OpenAIApi) 
         model: "text-davinci-003",
         prompt: customPrompt,
         temperature: 0.2,
-        max_tokens: 1024
+        max_tokens: 2048
     });
     console.log(JSON.stringify(completion.data));
     return createObject(completion.data.choices[0].text);
@@ -95,20 +95,19 @@ function createObject(gptResponse?: string) {
     let ingredientsStr = split[1].split("$endIngredients")[0].trim()
         .replaceAll('name', 'navn')
         .replaceAll('quantity', 'mængde')
-        .replaceAll('unit', 'endhed');
-        
+        .replaceAll('unit', 'enhed');
+    console.log(ingredientsStr)
     if (!ingredientsStr.startsWith('[')) {
         ingredientsStr = '[' + ingredientsStr;
     }
     if (ingredientsStr.endsWith(',')) {
-        ingredientsStr.slice(0,-1)
+        ingredientsStr.slice(1,-1)
     }
     if (!ingredientsStr.endsWith(']')) {
         ingredientsStr += ']';
     }
     console.log(ingredientsStr)
     const ingredients = JSON.parse(ingredientsStr);
-
 
     let planStr = gptResponse
         .split("$startMealPlan")[1]
@@ -121,7 +120,7 @@ function createObject(gptResponse?: string) {
         planStr = '[' + planStr;
     }
     if (planStr.endsWith(',')) {
-        planStr.slice(0,-1)
+        planStr.slice(1,-1)
     }
     if (!planStr.endsWith(']')) {
         planStr += ']';
