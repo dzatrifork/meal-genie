@@ -8,20 +8,20 @@ import { GptResult } from './api/mealplan';
 
 function Result(props: { result: GptResult | null, loading: boolean }) {
   if (props.loading) {
-    return <Placeholder>
+    return <Placeholder fluid>
       <Placeholder.Header>
         <Placeholder.Line />
         <Placeholder.Line />
       </Placeholder.Header>
       <Placeholder.Paragraph>
-        <Placeholder.Line />
-        <Placeholder.Line />
-        <Placeholder.Line />
-        <Placeholder.Line />
+        <Placeholder.Line length='full'/>
+        <Placeholder.Line length='full'/>
+        <Placeholder.Line length='full'/>
+        <Placeholder.Line length='full'/>
       </Placeholder.Paragraph>
     </Placeholder>
   }
-  if (props.result == null) {
+  if (props.result == null || props.result.ingredients?.map == null) {
     return <Header size='small'>Ingen madplan dannet</Header>
   }
   return <Item.Group>

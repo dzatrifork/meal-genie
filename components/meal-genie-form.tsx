@@ -4,10 +4,12 @@ import {
     Card,
     Checkbox,
     CheckboxProps,
+    Divider,
+    DropdownProps,
     Form,
-    Input,
-    Label,
-    Radio
+    Header,
+    Icon,
+    Input
 } from 'semantic-ui-react';
 import { GptResult } from '../pages/api/mealplan';
 
@@ -18,7 +20,19 @@ export type Values = {
     lunch: boolean,
     dinner: boolean,
     preferences?: string,
+    ingredients: {
+        value?: string,
+        days?: number
+    }[]
 }
+
+const ingredientOptions = [
+    { key: 'spaghetti', text: 'Spaghetti', value: 'spaghetti' },
+    { key: 'egg', text: 'Æg', value: 'egg' },
+    { key: 'rice', text: 'Ris', value: 'rice' },
+    { key: 'tomato', text: 'Tomat', value: 'tomato' },
+    { key: 'curry', text: 'Karry', value: 'curry' },
+]
 
 export interface PropsType {
     result: (result: GptResult | null) => void
@@ -46,7 +60,8 @@ const MealGenieForm = (props: PropsType) => {
         breakfast: false,
         lunch: false,
         dinner: true,
-        preferences: undefined
+        preferences: undefined,
+        ingredients: []
     });
 
 
@@ -67,7 +82,8 @@ const MealGenieForm = (props: PropsType) => {
             breakfast: values.breakfast,
             lunch: values.lunch,
             dinner: values.dinner,
-            preferences: values.preferences
+            preferences: values.preferences,
+            ingredients: values.ingredients
         }))
             .catch((e: Error) => e);
 
@@ -79,10 +95,42 @@ const MealGenieForm = (props: PropsType) => {
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setValues({ ...values, [event.target.name]: event.target.value });
-    }  
-    
+    }
+
     const handleChangeNum = (event: React.ChangeEvent<HTMLInputElement>) => {
         setValues({ ...values, [event.target.name]: Number(event.target.value) });
+    }
+
+    const handleChangeIngredientValue = (data: DropdownProps, index: number) => {
+        const ingredients = values.ingredients;
+        const ingredient = ingredients[index];
+        ingredient.value = data.value as string;
+        ingredients[index] = ingredient;
+        setValues({ ...values, ingredients: ingredients });
+        console.log(values.ingredients)
+    }
+
+    const handleChangeIngredientDays = (event: React.ChangeEvent<HTMLInputElement>, index: number) => {
+        const ingredients = values.ingredients;
+        const ingredient = ingredients[index];
+        ingredient.days = Number(event.target.value);
+        ingredients[index] = ingredient;
+        setValues({ ...values, ingredients: ingredients });
+        console.log(values.ingredients)
+    }
+
+    const handleDeleteIngredient = (index: number) => {
+        const ingredients = values.ingredients;
+        ingredients.splice(index, 1);
+        console.log(ingredients);
+        setValues({ ...values, ingredients: ingredients });
+    }
+
+    const handleAddIngredient = () => {
+        const ingredients = values.ingredients;
+        ingredients.push({ value: undefined, days: undefined });
+        console.log(ingredients);
+        setValues({ ...values, ingredients: ingredients });
     }
 
     const handleChangeCheckbox = (event: React.FormEvent<HTMLInputElement>, data: CheckboxProps) => {
@@ -116,9 +164,24 @@ const MealGenieForm = (props: PropsType) => {
                 <Form.Group inline>
                     <label>Særlige kostpræference?</label>
                     <Form.Radio label="Ingen" checked={values.preferences == null} value={undefined} onChange={handleChangeRadio} name="preferences" />
-                    <Form.Radio label="Vegetar" checked={values.preferences === 'vegetarian'} value='vegetarian' onChange={handleChangeRadio}name="preferences" />
+                    <Form.Radio label="Vegetar" checked={values.preferences === 'vegetarian'} value='vegetarian' onChange={handleChangeRadio} name="preferences" />
                     <Form.Radio label="Veganer" checked={values.preferences === 'vegan'} value='vegan' onChange={handleChangeRadio} name="preferences" />
                 </Form.Group>
+                <Divider></Divider>
+                <Button onClick={() => handleAddIngredient()}><Icon name="plus"></Icon> Tilføj ingrediens</Button>
+                {values.ingredients.length > 0 ? <Header as='h6' content="Jeg vil gerne have INGREDIENS i mindst DAGE"></Header> : <></>}
+                {values.ingredients.map((ingredient, index) =>
+                    <>
+                        <Divider hidden></Divider>
+                        <Form.Group widths={2}>
+                            <Form.Select fluid label="Ingrediens" options={ingredientOptions} onChange={(_: any, props: DropdownProps) => handleChangeIngredientValue(props, index)} name="value" required/>
+                            <Form.Field fluid label="Dage" type="number" control={Input} value={ingredient.days} onChange={(event: React.ChangeEvent<HTMLInputElement>, props: DropdownProps) => handleChangeIngredientDays(event, index)} name="days" required/>
+                            <Button className="delete-btn" icon='trash' negative circular onClick={() => handleDeleteIngredient(index)}></Button>
+                        </Form.Group>
+                    </>
+                    )
+                }
+                <Divider></Divider>
                 <Form.Field control={Button}>Opret madplan</Form.Field>
             </Form>
         </Card.Content>

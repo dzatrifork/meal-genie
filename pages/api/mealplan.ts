@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { Configuration, OpenAIApi } from "openai";
 
-const prompt = "Make a {days} day food plan for {people} people, with {meals}. {preferences} List the mealplan. Then list a summary of all the needed ingredients. Present the ingredients in json-format as a list with form {name, quantity, unit}. Put \"$startIngredients\" before the list og ingredients and end the result with \"$endResult\". Result should be in danish."
+const prompt = "Make a {days} day food plan for {people} people, with {meals}. {preferences} {ingredients} List the mealplan. Then list a summary of all the needed ingredients. Present the mealplan in json-format as a list with form {day, description} with \"$startMealPlan\" at the start and \"$endMealPlan\"$ at the end. Present the ingredients in json-format as a list with form {name, quantity, unit}. Put \"$startIngredients\" before the list of ingredients and  \"$endResult\" at the end. Result should be in danish."
 
 export type GptResult = {
     plan: string,
@@ -19,6 +19,10 @@ type Params = {
     lunch: boolean,
     dinner: boolean,
     preferences?: string,
+    ingredients: {
+        value?: string,
+        days?: number
+    }[]
 }
 
 type GptRequest = NextApiRequest & {
@@ -38,7 +42,8 @@ async function GetMealPlan(body: Params) {
         .replace("{days}", body.days)
         .replace("{people}", body.persons)
         .replace("{meals}", getMeals(body))
-        .replace("{preferences}", getPreferences(body));
+        .replace("{preferences}", getPreferences(body))
+        .replace("{ingredients}", getIngredientPreferences(body));
 
     console.log(customPrompt);
 
@@ -67,9 +72,10 @@ function createObject(gptResponse?: string) {
     var split = gptResponse.split("$startIngredients");
     var plan = split[0];
     const ingredientsStr = split[1].split("$endResult")[0].trim()
-        .replace('name', 'navn')
-        .replace('quantity', 'mængde')
-        .replace('unit', 'endhed');
+        .replaceAll('name', 'navn')
+        .replaceAll('quantity', 'mængde')
+        .replaceAll('unit', 'endhed');
+    console.log(ingredientsStr)
     const ingredients = JSON.parse(ingredientsStr);
     const result: GptResult = {
         plan: plan,
@@ -88,7 +94,7 @@ function getMeals(params: Params): string {
         res.push('lunch');
     }
     if (params.dinner) {
-        res.push('evening meal');
+        res.push('evening meals');
     }
 
     if (res.length === 1) {
@@ -104,4 +110,14 @@ function getPreferences(params: Params): string {
     }
 
     return `All meals should be ${params.preferences}.`
+}
+
+function getIngredientPreferences(params: Params): string {
+    if (params.ingredients == null || params.ingredients.length === 0) {
+        return '';
+    }
+
+    const i = params.ingredients.map((v) => `The mealplan must include ${v.value} for ${v.days} days out of ${params.days} days`)
+
+    return i.join('. ') + '. '
 }
