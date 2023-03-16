@@ -1,14 +1,14 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { Configuration, OpenAIApi } from "openai";
 
-const prompt = "Make a {days} day food plan for {people} people, with {meals}. List the mealplan. Then list a summary of all the needed ingredients. Present the ingredients in json-format as a list with form {name, quantity, unit}. Put \"$startIngredients\" before the list og ingredients and end the result with \"$endResult\". Result should be in danish."
+const prompt = "Make a {days} day food plan for {people} people, with {meals}. {preferences} List the mealplan. Then list a summary of all the needed ingredients. Present the ingredients in json-format as a list with form {name, quantity, unit}. Put \"$startIngredients\" before the list og ingredients and end the result with \"$endResult\". Result should be in danish."
 
 export type GptResult = {
     plan: string,
     ingredients: Array<{
         navn: string,
         mængde: string,
-        endhed: string
+        enhed: string
     }>
 }
 
@@ -18,6 +18,7 @@ type Params = {
     breakfast: boolean,
     lunch: boolean,
     dinner: boolean,
+    preferences?: string,
 }
 
 type GptRequest = NextApiRequest & {
@@ -36,7 +37,10 @@ async function GetMealPlan(body: Params) {
     var customPrompt = prompt
         .replace("{days}", body.days)
         .replace("{people}", body.persons)
-        .replace("{meals}", getMeals(body));
+        .replace("{meals}", getMeals(body))
+        .replace("{preferences}", getPreferences(body));
+
+    console.log(customPrompt);
 
     const configuration = new Configuration({
         apiKey: process.env.OPENAI_API_KEY,
@@ -63,9 +67,9 @@ function createObject(gptResponse?: string) {
     var split = gptResponse.split("$startIngredients");
     var plan = split[0];
     const ingredientsStr = split[1].split("$endResult")[0].trim()
-        .replace('\"name\":', '\"navn\":')
-        .replace('\"quantity\":', '\"mængde\":')
-        .replace('\"unit\":', '\"endhed\":');
+        .replace('name', 'navn')
+        .replace('quantity', 'mængde')
+        .replace('unit', 'endhed');
     const ingredients = JSON.parse(ingredientsStr);
     const result: GptResult = {
         plan: plan,
@@ -92,4 +96,12 @@ function getMeals(params: Params): string {
     } else {
         return `${res.slice(0, -1).join(", ")} and ${res.slice(-1)[0]}`;
     }
+}
+
+function getPreferences(params: Params): string {
+    if (params.preferences == null) {
+        return '';
+    }
+
+    return `All meals should be ${params.preferences}.`
 }
