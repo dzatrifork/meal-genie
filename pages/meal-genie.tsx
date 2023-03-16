@@ -33,8 +33,8 @@ function Result(props: { result: GptResult | null, loading: boolean }) {
         props.result.plan?.map(day =>
           <Item>
             <Item.Content>
-              <Item.Header>{day.dag}</Item.Header>
-              <Item.Description>{day.beskrivelse}</Item.Description>
+              <Item.Header>{day.day}</Item.Header>
+              <Item.Description>{day.description}</Item.Description>
             </Item.Content>
           </Item>
         )
@@ -55,8 +55,8 @@ function Result(props: { result: GptResult | null, loading: boolean }) {
               <Table.Body>
                 {props.result.ingredients.map(ing =>
                   <Table.Row>
-                    <Table.Cell>{ing.navn}</Table.Cell>
-                    <Table.Cell>{ing.mængde}{ing.enhed}</Table.Cell>
+                    <Table.Cell>{ing.name}</Table.Cell>
+                    <Table.Cell>{ing.quantity}{ing.unit}</Table.Cell>
                   </Table.Row>)}
               </Table.Body>
             </Table>
