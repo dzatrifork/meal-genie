@@ -17,22 +17,30 @@ export type NemligProduct = {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     const productList: Array<NemligProduct> = [];
+    const productPromises: Array<Promise<NemligProduct>> = []
     for (let index = 0; index < req.body.productNames.length; index++) {
         const element = req.body.productNames[index];
-        const product = await GetProductId(element);
-        productList.push(product);
+        const product = GetProductId(element);
+        productPromises.push(product);
     }
+    Promise.all(productPromises).then(products => {
+        products.forEach(product => productList.push(product))
+    });
+
     const loginCookie = await login(req.body.username, req.body.password);
     if (loginCookie === undefined) {
         return;
     }
 
+
+    const addBasketList: Array<Promise<void>> = [];
     for (let index = 0; index < productList.length; index++) {
         const element: NemligProduct = productList[index];
         if (element.Id !== "") {
-            await addToBasket(loginCookie, element.Id);
+            addBasketList.push(addToBasket(loginCookie, element.Id));
         }
     }
+    await Promise.all(addBasketList);
 
     console.log("###########################################")
     console.log(productList);
