@@ -15,50 +15,63 @@ function Result(props: { result: GptResult | null, loading: boolean }) {
         <Placeholder.Line />
       </Placeholder.Header>
       <Placeholder.Paragraph>
-        <Placeholder.Line length='full'/>
-        <Placeholder.Line length='full'/>
-        <Placeholder.Line length='full'/>
-        <Placeholder.Line length='full'/>
+        <Placeholder.Line length='full' />
+        <Placeholder.Line length='full' />
+        <Placeholder.Line length='full' />
+        <Placeholder.Line length='full' />
       </Placeholder.Paragraph>
     </Placeholder>
   }
-  if (props.result == null || props.result.ingredients?.map == null) {
-    return <Header size='small'>Ingen madplan dannet</Header>
+  if (props.result == null) {
+    return <Header size='small'>Ingen madplan dannet.</Header>
   }
   return <Item.Group>
-    <Item>
-      <Item.Content>
-        <Item.Header>Plan</Item.Header>
-        <Item.Description>
-          {props.result.plan}
-        </Item.Description>
-      </Item.Content>
-    </Item>
 
-    <Item>
-      <Item.Content>
-        <Item.Description>
-          <Table celled striped>
-            <Table.Header>
-              <Table.Row>
-                <Table.HeaderCell colSpan='2'>Ingredienser</Table.HeaderCell>
-              </Table.Row>
-            </Table.Header>
-            <Table.Body>
-              {props.result.ingredients.map(ing =>
+    {
+      props.result.plan?.map != null
+        ?
+        props.result.plan?.map(day =>
+          <Item>
+            <Item.Content>
+              <Item.Header>{day.dag}</Item.Header>
+              <Item.Description>{day.beskrivelse}</Item.Description>
+            </Item.Content>
+          </Item>
+        )
+        :
+        <Message error>Fejl i plan generering. Prøv igen...</Message>
+    }
+    {props.result.ingredients?.map != null
+      ?
+      <Item>
+        <Item.Content>
+          <Item.Description>
+            <Table celled striped>
+              <Table.Header>
                 <Table.Row>
-                  <Table.Cell>{ing.navn}</Table.Cell>
-                  <Table.Cell>{ing.mængde}{ing.enhed}</Table.Cell>
-                </Table.Row>)}
-            </Table.Body>
-          </Table>
-        </Item.Description>
-      </Item.Content>
-    </Item>
+                  <Table.HeaderCell colSpan='2'>Ingredienser</Table.HeaderCell>
+                </Table.Row>
+              </Table.Header>
+              <Table.Body>
+                {props.result.ingredients.map(ing =>
+                  <Table.Row>
+                    <Table.Cell>{ing.navn}</Table.Cell>
+                    <Table.Cell>{ing.mængde}{ing.enhed}</Table.Cell>
+                  </Table.Row>)}
+              </Table.Body>
+            </Table>
+          </Item.Description>
+        </Item.Content>
+      </Item>
+      :
+      <Message error>Fejl i ingrediens generering. Prøv igen...</Message>
+
+    }
+
   </Item.Group>
 }
 
-function NemligTable(props: {nemligResult: NemligResult, nemligLoading: boolean}) {
+function NemligTable(props: { nemligResult: NemligResult, nemligLoading: boolean }) {
   if (props.nemligLoading) {
     return <Placeholder >
       <Placeholder.Header>
@@ -74,20 +87,20 @@ function NemligTable(props: {nemligResult: NemligResult, nemligLoading: boolean}
     </Placeholder>
   }
   return <Table celled striped>
-      <Table.Header>
-        <Table.Row>
-          <Table.HeaderCell colSpan='2'>Antal produkter: {props.nemligResult.ItemsInBasket}, Total pris: {props.nemligResult.TotalPrice} kr.</Table.HeaderCell>
-        </Table.Row>
-      </Table.Header>
-      <Table.Body>
-        {props.nemligResult.Products.map(ing =>
-      <Table.Row warning={ing.Id === ""}>
-        <Table.Cell>{ing.GptName}</Table.Cell>
-        <Table.Cell>{ing.Name === "" ? "IKKE FUNDET" : ing.Name}</Table.Cell>
+    <Table.Header>
+      <Table.Row>
+        <Table.HeaderCell colSpan='2'>Antal produkter: {props.nemligResult.ItemsInBasket}, Total pris: {props.nemligResult.TotalPrice} kr.</Table.HeaderCell>
       </Table.Row>
-       )}
-      </Table.Body>
-</Table>
+    </Table.Header>
+    <Table.Body>
+      {props.nemligResult.Products.map(ing =>
+        <Table.Row warning={ing.Id === ""}>
+          <Table.Cell>{ing.GptName}</Table.Cell>
+          <Table.Cell>{ing.Name === "" ? "IKKE FUNDET" : ing.Name}</Table.Cell>
+        </Table.Row>
+      )}
+    </Table.Body>
+  </Table>
 }
 
 export default function MealGenie() {
@@ -131,21 +144,21 @@ export default function MealGenie() {
                 Export to <Image id='nemlig-img' src='/images/nemlig-web-logo.svg' alt={'Nemlig.com'} width={90} height={90}></Image>
               </Header>
             </Card.Content>
-            { result != null 
-            ? 
-            <NemligForm mealPlan={result} nemligResult={setNemligResult} nemLigloading={setNemligloading}></NemligForm> 
-            : 
-            <Card.Content>
-              <Message warning>
-                <Message.Header>Tryk på 'Opret madplan'</Message.Header>
-                <p>Opret madplan før du kan sende til Nemlig.com</p>
-                
+            {result != null
+              ?
+              <NemligForm mealPlan={result} nemligResult={setNemligResult} nemLigloading={setNemligloading}></NemligForm>
+              :
+              <Card.Content>
+                <Message warning>
+                  <Message.Header>Tryk på 'Opret madplan'</Message.Header>
+                  <p>Opret madplan før du kan sende til Nemlig.com</p>
+
                 </Message>
-            </Card.Content>
+              </Card.Content>
             }
             {nemligResult != null ?
-            <NemligTable nemligResult={nemligResult} nemligLoading={nemligLoading}></NemligTable>
-            : <></>
+              <NemligTable nemligResult={nemligResult} nemligLoading={nemligLoading}></NemligTable>
+              : <></>
             }
           </Card>
         </Grid.Column>

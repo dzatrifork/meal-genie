@@ -1,10 +1,13 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { Configuration, OpenAIApi } from "openai";
 
-const prompt = "Make a {days} day food plan for {people} people, with {meals}. {preferences} {ingredients} List the mealplan. Then list a summary of all the needed ingredients. Present the mealplan in json-format as a list with form {day, description} with \"$startMealPlan\" at the start and \"$endMealPlan\"$ at the end. Present the ingredients in json-format as a list with form {name, quantity, unit}. Put \"$startIngredients\" before the list of ingredients and  \"$endResult\" at the end. Result should be in danish."
+const prompt = "Make a {days} day food plan for {people} people, with {meals}. {preferences} {ingredients} List the mealplan. Then list a summary of all the needed ingredients. Present the mealplan in json-format as a list with form {day, description} with \"$startMealPlan\" at the start and \"$endMealPlan\" at the end. Present the ingredients in json-format as a list with form {name, quantity, unit}. Put \"$startIngredients\" before the list of ingredients and  \"$endIngredients\" at the end. Result should be in danish."
 
 export type GptResult = {
-    plan: string,
+    plan: {
+        dag: string,
+        beskrivelse: string
+    }[],
     ingredients: Array<{
         navn: string,
         mængde: string,
@@ -58,7 +61,7 @@ async function GetMealPlan(body: Params) {
             { role: "system", content: "You are a helpful assistant." },
             { role: "user", content: customPrompt }],
         temperature: 0.2,
-        max_tokens: 1024
+        max_tokens: 2048
     });
     console.log(JSON.stringify(completion.data));
 
@@ -70,13 +73,44 @@ function createObject(gptResponse?: string) {
         return null;
     }
     var split = gptResponse.split("$startIngredients");
-    var plan = split[0];
-    const ingredientsStr = split[1].split("$endResult")[0].trim()
+    let ingredientsStr = split[1].split("$endIngredients")[0].trim()
         .replaceAll('name', 'navn')
         .replaceAll('quantity', 'mængde')
         .replaceAll('unit', 'endhed');
+        
+    if (!ingredientsStr.startsWith('[')) {
+        ingredientsStr = '[' + ingredientsStr;
+    }
+    if (ingredientsStr.endsWith(',')) {
+        ingredientsStr.slice(0,-1)
+    }
+    if (!ingredientsStr.endsWith(']')) {
+        ingredientsStr += ']';
+    }
     console.log(ingredientsStr)
     const ingredients = JSON.parse(ingredientsStr);
+
+
+    let planStr = gptResponse
+        .split("$startMealPlan")[1]
+        .split("$endMealPlan")[0]
+        .trim()
+        .replaceAll('day', 'dag')
+        .replaceAll('description', 'beskrivelse');
+
+    if (!planStr.startsWith('[')) {
+        planStr = '[' + planStr;
+    }
+    if (planStr.endsWith(',')) {
+        planStr.slice(0,-1)
+    }
+    if (!planStr.endsWith(']')) {
+        planStr += ']';
+    }
+    console.log(planStr)
+
+    const plan = JSON.parse(planStr);
+
     const result: GptResult = {
         plan: plan,
         ingredients: ingredients
