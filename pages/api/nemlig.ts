@@ -3,28 +3,72 @@ import { parse } from "path";
 
 const API_ROOT = 'https://www.nemlig.com/webapi'
 
-type NemligProduct = {
+export type NemligResult = {
+    Products: Array<NemligProduct>,
+    ItemsInBasket: string,
+    TotalPrice: string 
+}
+
+export type NemligProduct = {
     Id: string,
-    Name: string
+    Name: string,
+    GptName: string
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     const productList: Array<NemligProduct> = [];
+    const productPromises: Array<Promise<NemligProduct>> = []
     for (let index = 0; index < req.body.productNames.length; index++) {
         const element = req.body.productNames[index];
-        productList.push(await GetProductId(element));
+        const product = GetProductId(element);
+        productPromises.push(product);
     }
+    await Promise.all(productPromises).then(products => {
+        products.forEach(product => productList.push(product))
+    });
+
     const loginCookie = await login(req.body.username, req.body.password);
     if (loginCookie === undefined) {
         return;
     }
 
+
+    const addBasketList: Array<Promise<void>> = [];
     for (let index = 0; index < productList.length; index++) {
         const element: NemligProduct = productList[index];
-        await addToBasket(loginCookie, element.Id);
+        if (element.Id !== "") {
+            addBasketList.push(addToBasket(loginCookie, element.Id));
+        }
+    }
+    await Promise.all(addBasketList);
+
+    console.log("###########################################")
+    console.log(productList);
+
+    const basket = await getBasket(loginCookie);
+
+    const nemLigResult: NemligResult = {
+        ItemsInBasket: basket.NumberOfProducts,
+        TotalPrice: basket.TotalProductsPrice,
+        Products: productList
     }
 
-    return res.status(200).json("result");
+    return res.status(200).json(nemLigResult);
+}
+
+async function getBasket(cookie: string) {
+    const path = "/basket/GetBasket";
+
+    const result = await fetch(API_ROOT + path, {
+        method: "GET",
+        headers: {
+            "Cookie": cookie
+        }
+    });
+    console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%");
+    console.log(result);
+    console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%");
+    return result.json();
 }
 
 async function addToBasket(cookie: string, productId: string) {
@@ -99,11 +143,17 @@ function getCookie(cookies: string) {
 async function GetProductId(productName: string) {
     const trimName = productName.trim();
     console.log(trimName)
-    const path = '/s/0/1/0/Search/Search?query=';
-    const result = await (await fetch(API_ROOT + path + trimName)).json();
-    const parsed: NemligProduct = {Id: result.Products.Products[0].Id, Name: result.Products.Products[0].Name};
-    console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%");
-    console.log(parsed);
-    console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%");
-    return parsed;
+    try {
+        const path = '/s/0/1/0/Search/Search?query=';
+        const result = await (await fetch(API_ROOT + path + trimName)).json();
+        const parsed: NemligProduct = {Id: result.Products.Products[0].Id, Name: result.Products.Products[0].Name + ", " + result.Products.Products[0].Description, GptName: productName};
+        console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%");
+        console.log(parsed);
+        console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%");
+        return parsed;
+    } catch (error) {
+        const parsed: NemligProduct = {Id: "", Name: "", GptName: productName};
+        return parsed;
+    }
+    
 }

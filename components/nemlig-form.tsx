@@ -6,6 +6,7 @@ import {
     Input
 } from 'semantic-ui-react';
 import { GptResult } from '../pages/api/mealplan';
+import { NemligProduct, NemligResult } from "../pages/api/nemlig";
 
 export type Values = {
     user?: string,
@@ -13,7 +14,9 @@ export type Values = {
 }
 
 export interface PropsType {
-  mealPlan: GptResult
+  mealPlan: GptResult,
+  nemligResult: (result: NemligResult | null) => void
+  nemLigloading: (result: boolean) => void
 }
 
 export interface RefType {
@@ -40,10 +43,13 @@ const NemligForm = (props: PropsType) => {
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         setLoading(true);
+        props.nemLigloading(true)
         event.preventDefault();
         console.log(values);
         const names = props.mealPlan.ingredients.map(i => i.navn)
-        await fetcher('api/nemlig', JSON.stringify({username: values.user, password: values.pwd, productNames: names}));
+        const nemligResult = await fetcher('api/nemlig', JSON.stringify({username: values.user, password: values.pwd, productNames: names}));
+        props.nemligResult(nemligResult);
+        props.nemLigloading(false);
         setLoading(false);
     }
 

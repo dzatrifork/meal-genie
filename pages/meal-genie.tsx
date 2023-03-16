@@ -5,6 +5,7 @@ import MealGenieForm, { RefType } from '../components/meal-genie-form';
 import NemligForm from '../components/nemlig-form';
 import '../semantic/dist/semantic.min.css';
 import { GptResult } from './api/mealplan';
+import { NemligProduct, NemligResult } from './api/nemlig';
 
 function Result(props: { result: GptResult | null, loading: boolean }) {
   if (props.loading) {
@@ -57,10 +58,44 @@ function Result(props: { result: GptResult | null, loading: boolean }) {
   </Item.Group>
 }
 
+function NemligTable(props: {nemligResult: NemligResult, nemligLoading: boolean}) {
+  if (props.nemligLoading) {
+    return <Placeholder >
+      <Placeholder.Header>
+        <Placeholder.Line />
+        <Placeholder.Line />
+      </Placeholder.Header>
+      <Placeholder.Paragraph>
+        <Placeholder.Line />
+        <Placeholder.Line />
+        <Placeholder.Line />
+        <Placeholder.Line />
+      </Placeholder.Paragraph>
+    </Placeholder>
+  }
+  return <Table celled striped>
+      <Table.Header>
+        <Table.Row>
+          <Table.HeaderCell colSpan='2'>Antal produkter: {props.nemligResult.ItemsInBasket}, Total pris: {props.nemligResult.TotalPrice} kr.</Table.HeaderCell>
+        </Table.Row>
+      </Table.Header>
+      <Table.Body>
+        {props.nemligResult.Products.map(ing =>
+      <Table.Row warning={ing.Id === ""}>
+        <Table.Cell>{ing.GptName}</Table.Cell>
+        <Table.Cell>{ing.Name === "" ? "IKKE FUNDET" : ing.Name}</Table.Cell>
+      </Table.Row>
+       )}
+      </Table.Body>
+</Table>
+}
+
 export default function MealGenie() {
   const mealGenieRef = useRef<RefType>(null);
   const [result, setResult] = useState<GptResult | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const [nemligResult, setNemligResult] = useState<NemligResult | null>(null);
+  const [nemligLoading, setNemligloading] = useState<boolean>(false);
 
 
   return <>
@@ -98,7 +133,7 @@ export default function MealGenie() {
             </Card.Content>
             { result != null 
             ? 
-            <NemligForm mealPlan={result}></NemligForm> 
+            <NemligForm mealPlan={result} nemligResult={setNemligResult} nemLigloading={setNemligloading}></NemligForm> 
             : 
             <Card.Content>
               <Message warning>
@@ -108,11 +143,13 @@ export default function MealGenie() {
                 </Message>
             </Card.Content>
             }
-            
+            {nemligResult != null ?
+            <NemligTable nemligResult={nemligResult} nemligLoading={nemligLoading}></NemligTable>
+            : <></>
+            }
           </Card>
         </Grid.Column>
       </Grid>
-
 
     </div>
   </>
