@@ -1,5 +1,8 @@
+import { User } from './user';
+import { sessionOptions } from './../../lib/session';
 import { NextApiRequest, NextApiResponse } from "next";
 import { ChatCompletionRequestMessage, Configuration, CreateChatCompletionResponse, CreateCompletionResponse, OpenAIApi } from "openai";
+import { withIronSessionApiRoute } from 'iron-session/next';
 
 const prompt = "Make a {days} day food plan for {people} people, with {meals}. {preferences} {ingredients} {types} "
 const promptGPT3Ingredients = "Summarize the Ingredients as a list with an entry for each ingredient. Your response should be in JSON format with three parameters \"name\", \"quantity\" and \"unit\" for each ingredient ex. [{\"name\": \"Flour\", \"quantity\":\"1\", \"unit\": \"kg\"}]. Values should be in danish. "
@@ -42,15 +45,19 @@ type GptRequest = NextApiRequest & {
     body: Params
 }
 
-export default async function handler(req: GptRequest, res: NextApiResponse) {
-    const result = await GetMealPlan(req.body);
+async function handler(req: GptRequest, res: NextApiResponse) {
+    if (req.session.user == null || req.session.user.openaiApiKey == null || !req.session.user.isLoggedIn) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+    
+    const result = await GetMealPlan(req.body, req.session.user.openaiApiKey);
     if (result == null) {
         return new Response();
     }
     return res.status(201).json(result);
 }
 
-async function GetMealPlan(body: Params) {
+async function GetMealPlan(body: Params, openaiApiKey: string) {
     var customPrompt = prompt
         .replace("{days}", body.days)
         .replace("{people}", body.persons)
@@ -62,7 +69,7 @@ async function GetMealPlan(body: Params) {
     console.log(customPrompt);
 
     const configuration = new Configuration({
-        apiKey: process.env.OPENAI_API_KEY,
+        apiKey: openaiApiKey,
     });
     const openai = new OpenAIApi(configuration);
 
@@ -208,3 +215,5 @@ function getTypesPreferences(params: Params): string {
 
     return i.join('. ') + '. '
 }
+
+export default withIronSessionApiRoute(handler, sessionOptions)

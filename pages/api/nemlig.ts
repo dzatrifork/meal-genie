@@ -4,15 +4,15 @@ import { parse } from "path";
 const API_ROOT = 'https://www.nemlig.com/webapi'
 
 export type NemligResult = {
-    Products: Array<NemligProduct>,
-    ItemsInBasket: string,
-    TotalPrice: string 
+    products: Array<NemligProduct>,
+    itemsInBasket: string,
+    totalPrice: string 
 }
 
 export type NemligProduct = {
-    Id: string,
-    Name: string,
-    GptName: string
+    id: string,
+    name: string,
+    gptName: string
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -36,8 +36,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const addBasketList: Array<Promise<void>> = [];
     for (let index = 0; index < productList.length; index++) {
         const element: NemligProduct = productList[index];
-        if (element.Id !== "") {
-            addBasketList.push(addToBasket(loginCookie, element.Id));
+        if (element.id !== "") {
+            addBasketList.push(addToBasket(loginCookie, element.id));
         }
     }
     await Promise.all(addBasketList);
@@ -48,9 +48,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const basket = await getBasket(loginCookie);
 
     const nemLigResult: NemligResult = {
-        ItemsInBasket: basket.NumberOfProducts,
-        TotalPrice: basket.TotalProductsPrice,
-        Products: productList
+        itemsInBasket: basket.NumberOfProducts,
+        totalPrice: basket.TotalProductsPrice,
+        products: productList
     }
 
     return res.status(200).json(nemLigResult);
@@ -146,13 +146,13 @@ async function GetProductId(productName: string) {
     try {
         const path = '/s/0/1/0/Search/Search?query=';
         const result = await (await fetch(API_ROOT + path + trimName)).json();
-        const parsed: NemligProduct = {Id: result.Products.Products[0].Id, Name: result.Products.Products[0].Name + ", " + result.Products.Products[0].Description, GptName: productName};
+        const parsed: NemligProduct = {id: result.Products.Products[0].Id, name: result.Products.Products[0].Name + ", " + result.Products.Products[0].Description, gptName: productName};
         console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%");
         console.log(parsed);
         console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%");
         return parsed;
     } catch (error) {
-        const parsed: NemligProduct = {Id: "", Name: "", GptName: productName};
+        const parsed: NemligProduct = {id: "", name: "", gptName: productName};
         return parsed;
     }
     
