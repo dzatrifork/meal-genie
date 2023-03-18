@@ -15,7 +15,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <title>MealGenie</title>
       </Head>
       <main>
-      <Menu fixed="top" inverted secondary color="blue" style={{height: '50px'}}>
+      <Menu fixed="top" inverted secondary color="green" style={{height: '50px'}}>
         <Menu.Item header>
           <Image
             src={"/images/logo_transparent.svg"}

@@ -11,6 +11,7 @@ import {
   Header,
   Icon,
   Input,
+  Radio,
 } from "semantic-ui-react";
 import { IngredientsResult } from "../pages/api/mealplan/chatgpt/ingredients";
 import { InitResult } from "../pages/api/mealplan/chatgpt/init";
@@ -346,7 +347,7 @@ const MealGenieForm = (props: PropsType) => {
             />
           </Form.Group>
           <Divider></Divider>
-          <Button onClick={() => handleAddIngredient()}>
+          <Button onClick={() => handleAddIngredient()} color='green'>
             <Icon name="plus"></Icon> Tilføj ingrediens
           </Button>
           {values.ingredients.length > 0 ? (
@@ -395,7 +396,7 @@ const MealGenieForm = (props: PropsType) => {
             </>
           ))}
           <Divider></Divider>
-          <Button onClick={() => handleAddType()}>
+          <Button onClick={() => handleAddType()} color='green'>
             <Icon name="plus"></Icon>Tilføj Type
           </Button>
           {values.types.length > 0 ? (
@@ -443,7 +444,7 @@ const MealGenieForm = (props: PropsType) => {
             </>
           ))}
           <Divider></Divider>
-          <Form.Field type="submit" control={Button}>
+          <Form.Field type="submit" control={Button} color='green'>
             Opret madplan
           </Form.Field>
         </Form>

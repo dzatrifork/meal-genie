@@ -30,7 +30,7 @@ export default function MealGenie() {
   return (
     <Layout>
       <div className="ui main container">
-        <Menu inverted color="blue">
+        <Menu inverted color="green">
           <Menu.Item header>
             <Image
               src={"/images/openai_logo.svg"}
@@ -41,20 +41,20 @@ export default function MealGenie() {
             ></Image>{" "} Model
           </Menu.Item>
           <Menu.Item onClick={() => setModel("gpt3")} active={model === "gpt3"}>
-            ChatGpt <Label color="blue">gpt-3.5-turbo</Label>
+            ChatGpt <Label color="green">gpt-3.5-turbo</Label>
           </Menu.Item>
           <Menu.Item
             onClick={() => setModel("davinci")}
             active={model === "davinci"}
           >
-            InstructGPT <Label color="blue">davinci</Label>
+            InstructGPT <Label color="green">davinci</Label>
           </Menu.Item>
           <Menu.Item
             disabled
             onClick={() => setModel("gpt4")}
             active={model === "gpt4"}
           >
-            GPT-4 <Label color="blue">Coming soon</Label>
+            GPT-4 <Label color="green">Coming soon</Label>
           </Menu.Item>
           <Menu.Item position="right">
             {" "}
