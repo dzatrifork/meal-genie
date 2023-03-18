@@ -12,7 +12,12 @@ body {
 }
 
 .main {
-    margin-top: 115px;
+    padding-top: 65px;
+}
+
+.login {
+    margin: auto;
+    margin-top: 65px;
 }
 
 #nemlig-img {
@@ -21,7 +26,7 @@ body {
 }
 
 .delete-btn {
-    height: 37px !important;
+    height: 38px !important;
     margin-top: auto !important;
     margin-right: 15px !important;
 }
