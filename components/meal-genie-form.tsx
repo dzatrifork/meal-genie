@@ -51,12 +51,12 @@ const typeOptions = [
 ];
 
 export type GptResult = {
-  planStr: string;
-  plan: {
+  planStr?: string;
+  plan?: {
     day: string;
     description: string;
   }[];
-  ingredients: {
+  ingredients?: {
     name: string;
     quantity: string;
     unit: string;
@@ -129,45 +129,49 @@ const MealGenieForm = (props: PropsType) => {
         JSON.stringify(body)
       ).catch((e: Error) => e);
 
-      const ingredients: Promise<IngredientsResult> = fetcher(
+      let result: GptResult | null  = {
+        planStr: init.planStr,
+      };
+      props.result(result);
+
+      const ingredients = fetcher(
         "/api/mealplan/chatgpt/ingredients",
         JSON.stringify({
           messages: init.messages,
-        })
-      ).catch((e: Error) => {
+        }))
+      .then((res) => {
+        result = {
+          ...result,
+          ingredients: res.ingredients,
+        }
+        props.result(result);
+      }).catch((e: Error) => {
         console.log(e);
         return null;
       });
 
-      const plan: Promise<PlanResult> = fetcher(
+      const plan = fetcher(
         "/api/mealplan/chatgpt/plan",
         JSON.stringify({
           messages: init.messages,
-        })
-      ).catch((e: Error) => {
+        }))
+      .then((res) => {
+        result = {
+          ...result,
+          plan: res.plan,
+          planStr: res.planStr,
+        }
+        props.result(result);
+      }).catch((e: Error) => {
         console.log(e);
         return null;
       });
 
-      const res = await Promise.all([ingredients, plan]).then((values) => {
-        const ingredients = values[0];
-        const plan = values[1];
-
-        if (ingredients == null || plan == null) {
-          props.result(null);
-          return;
-        }
-
-        return {
-          planStr: init.planStr,
-          plan: plan.plan,
-          ingredients: ingredients.ingredients,
-        };
-      });
-      console.log(res);
+      await Promise.all([ingredients, plan]);
+      console.log(result);      
       
-      if (res != null) {
-          props.result(res);
+      if (result != null) {
+          props.result(result);
       }
     }
     props.loading(false);
@@ -276,7 +280,7 @@ const MealGenieForm = (props: PropsType) => {
   return (
     <>
       <Card.Content>
-        <Form onSubmit={handleSubmit} loading={loading}>
+        <Form onSubmit={handleSubmit}>
           <Form.Group widths={2}>
             <Form.Field
               label="Dage"
@@ -286,6 +290,7 @@ const MealGenieForm = (props: PropsType) => {
               onChange={handleChangeNum}
               name="days"
               required
+              disabled={loading}
             />
             <Form.Field
               label="Personer"
@@ -295,6 +300,7 @@ const MealGenieForm = (props: PropsType) => {
               onChange={handleChangeNum}
               name="persons"
               required
+              disabled={loading}
             />
           </Form.Group>
           <Form.Group inline>
@@ -305,6 +311,7 @@ const MealGenieForm = (props: PropsType) => {
               checked={values.breakfast}
               onChange={handleChangeCheckbox}
               name="breakfast"
+              disabled={loading}
             />
             <Form.Checkbox
               label="Middag"
@@ -312,6 +319,7 @@ const MealGenieForm = (props: PropsType) => {
               checked={values.lunch}
               onChange={handleChangeCheckbox}
               name="lunch"
+              disabled={loading}
             />
             <Form.Checkbox
               label="Aften"
@@ -319,6 +327,7 @@ const MealGenieForm = (props: PropsType) => {
               checked={values.dinner}
               onChange={handleChangeCheckbox}
               name="dinner"
+              disabled={loading}
             />
           </Form.Group>
           <Form.Group inline>
@@ -329,6 +338,7 @@ const MealGenieForm = (props: PropsType) => {
               value={undefined}
               onChange={handleChangeRadio}
               name="preferences"
+              disabled={loading}
             />
             <Form.Radio
               label="Vegetar"
@@ -336,6 +346,7 @@ const MealGenieForm = (props: PropsType) => {
               value="vegetarian"
               onChange={handleChangeRadio}
               name="preferences"
+              disabled={loading}
             />
             <Form.Radio
               label="Veganer"
@@ -343,10 +354,12 @@ const MealGenieForm = (props: PropsType) => {
               value="vegan"
               onChange={handleChangeRadio}
               name="preferences"
+              disabled={loading}
             />
           </Form.Group>
           <Divider></Divider>
-          <Button onClick={() => handleAddIngredient()}>
+          <Button onClick={() => handleAddIngredient()} color="blue" 
+              disabled={loading}>
             <Icon name="plus"></Icon> Tilføj ingrediens
           </Button>
           {values.ingredients.length > 0 ? (
@@ -370,6 +383,7 @@ const MealGenieForm = (props: PropsType) => {
                   }
                   name="value"
                   required
+                  disabled={loading}
                 />
                 <Form.Field
                   error={(ingredient.days ?? 0) > (values.days ?? 0)}
@@ -384,18 +398,21 @@ const MealGenieForm = (props: PropsType) => {
                   ) => handleChangeIngredientDays(event, index)}
                   name="days"
                   required
+                  disabled={loading}
                 />
                 <Button
                   className="delete-btn"
                   icon="x"
                   compact
                   onClick={() => handleDeleteIngredient(index)}
+                  disabled={loading}
                 ></Button>
               </Form.Group>
             </>
           ))}
           <Divider></Divider>
-          <Button onClick={() => handleAddType()}>
+          <Button onClick={() => handleAddType()} color="blue"
+              disabled={loading}>
             <Icon name="plus"></Icon>Tilføj Type
           </Button>
           {values.types.length > 0 ? (
@@ -419,6 +436,7 @@ const MealGenieForm = (props: PropsType) => {
                   }
                   name="value"
                   required
+                  disabled={loading}
                 />
                 <Form.Field
                   fluid
@@ -432,18 +450,20 @@ const MealGenieForm = (props: PropsType) => {
                   ) => handleChangeTypeDays(event, index)}
                   name="days"
                   required
+                  disabled={loading}
                 />
                 <Button
                   className="delete-btn"
                   icon="x"
                   compact
                   onClick={() => handleDeleteType(index)}
+                  disabled={loading}
                 ></Button>
               </Form.Group>
             </>
           ))}
           <Divider></Divider>
-          <Form.Field type="submit" control={Button}>
+          <Form.Field type="submit" control={Button} color="blue" loading={loading}>
             Opret madplan
           </Form.Field>
         </Form>

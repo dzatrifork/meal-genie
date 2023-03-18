@@ -40,7 +40,7 @@ const NemligForm = (props: PropsType) => {
     props.nemLigloading(true);
     event.preventDefault();
     console.log(values);
-    const names = props.mealPlan.ingredients.map((i) => i.name);
+    const names = props.mealPlan.ingredients?.map((i) => i.name);
     const nemligResult = await fetcher(
       "api/nemlig",
       JSON.stringify({

@@ -37,8 +37,9 @@ export default function MealGenie() {
               alt="OpenAI"
               width={120}
               height={20}
-              style={{ width: "75px", marginRight: "5px"}}
-            ></Image>{" "} Model
+              style={{ width: "75px", marginRight: "5px" }}
+            ></Image>{" "}
+            Model
           </Menu.Item>
           <Menu.Item onClick={() => setModel("gpt3")} active={model === "gpt3"}>
             ChatGpt <Label color="blue">gpt-3.5-turbo</Label>
@@ -63,7 +64,7 @@ export default function MealGenie() {
         </Menu>
         <Grid>
           <Grid.Column width={11}>
-            <Card fluid>
+            <Card fluid color="blue" raised>
               <Card.Content>
                 <Card.Header>Definer din madplan!</Card.Header>
               </Card.Content>
@@ -72,15 +73,8 @@ export default function MealGenie() {
                 result={setResult}
                 loading={setLoading}
               ></MealGenieForm>
-              <Card.Content extra>
-                <Container className="u-p-15">
-                  <MealPlanResult
-                    result={result}
-                    loading={loading}
-                  ></MealPlanResult>
-                </Container>
-              </Card.Content>
             </Card>
+            <MealPlanResult result={result} loading={loading}></MealPlanResult>
           </Grid.Column>
           <Grid.Column width={5}>
             <Card fluid>
@@ -96,7 +90,7 @@ export default function MealGenie() {
                   ></Image>
                 </Header>
               </Card.Content>
-              {result != null ? (
+              {result?.ingredients != null ? (
                 <NemligForm
                   mealPlan={result}
                   nemligResult={setNemligResult}
