@@ -1,72 +1,88 @@
 import React, { useState } from "react";
-import {
-    Button,
-    Card,
-    Form,
-    Input
-} from 'semantic-ui-react';
-import { GptResult } from '../pages/api/mealplan';
-import { NemligProduct, NemligResult } from "../pages/api/nemlig";
+import { Button, Card, Form, Input } from "semantic-ui-react";
+import { NemligResult } from "../pages/api/nemlig";
+import { GptResult } from "./meal-genie-form";
 
 export type Values = {
-    user?: string,
-    pwd?: string,
-}
+  user?: string;
+  pwd?: string;
+};
 
 export interface PropsType {
-  mealPlan: GptResult,
-  nemligResult: (result: NemligResult | null) => void
-  nemLigloading: (result: boolean) => void
+  mealPlan: GptResult;
+  nemligResult: (result: NemligResult | null) => void;
+  nemLigloading: (result: boolean) => void;
 }
 
 export interface RefType {
-    result: GptResult | null;
+  result: GptResult | null;
 }
 
-const fetcher = (url: string, body: string) => fetch(url, {
+const fetcher = (url: string, body: string) =>
+  fetch(url, {
     method: "POST",
     body: body,
     headers: {
-        "Content-Type": "application/json",
-        "Accept": "application/json"
-    }
-}).then((res) => res.json())
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+  }).then((res) => res.json());
 
 const NemligForm = (props: PropsType) => {
-    const [loading, setLoading] = useState<boolean>(false);
-    const [values, setValues] = useState<Values>({
-        user: undefined,
-        pwd: undefined,
-    });
+  const [loading, setLoading] = useState<boolean>(false);
+  const [values, setValues] = useState<Values>({
+    user: undefined,
+    pwd: undefined,
+  });
 
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    setLoading(true);
+    props.nemLigloading(true);
+    event.preventDefault();
+    console.log(values);
+    const names = props.mealPlan.ingredients.map((i) => i.name);
+    const nemligResult = await fetcher(
+      "api/nemlig",
+      JSON.stringify({
+        username: values.user,
+        password: values.pwd,
+        productNames: names,
+      })
+    );
+    props.nemligResult(nemligResult);
+    props.nemLigloading(false);
+    setLoading(false);
+  };
 
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setValues({ ...values, [event.target.name]: event.target.value });
+  };
 
-    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-        setLoading(true);
-        props.nemLigloading(true)
-        event.preventDefault();
-        console.log(values);
-        const names = props.mealPlan.ingredients.map(i => i.name)
-        const nemligResult = await fetcher('api/nemlig', JSON.stringify({username: values.user, password: values.pwd, productNames: names}));
-        props.nemligResult(nemligResult);
-        props.nemLigloading(false);
-        setLoading(false);
-    }
-
-
-    const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setValues({ ...values, [event.target.name]: event.target.value });
-    }
-
-    return <>
-        <Card.Content>
-            <Form onSubmit={handleSubmit} loading={loading}>
-                <Form.Field label="Bruger" type="email" control={Input} onChange={handleChange} name="user" required/>
-                <Form.Field label="Password" type="password" control={Input} onChange={handleChange} name="pwd" required/>
-                <Form.Field control={Button}>Nemligfy!</Form.Field>
-            </Form>
-        </Card.Content>
-    </>;
-}
+  return (
+    <>
+      <Card.Content>
+        <Form onSubmit={handleSubmit} loading={loading}>
+          <Form.Field
+            label="Bruger"
+            type="email"
+            control={Input}
+            onChange={handleChange}
+            name="user"
+            required
+          />
+          <Form.Field
+            label="Password"
+            type="password"
+            control={Input}
+            onChange={handleChange}
+            name="pwd"
+            required
+          />
+          <Form.Field control={Button}>Nemligfy!</Form.Field>
+        </Form>
+      </Card.Content>
+    </>
+  );
+};
 
 export default NemligForm;

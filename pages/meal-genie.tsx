@@ -11,12 +11,11 @@ import {
   Message,
 } from "semantic-ui-react";
 import Layout from "../components/layout";
-import MealGenieForm from "../components/meal-genie-form";
+import MealGenieForm, { GptResult } from "../components/meal-genie-form";
 import MealPlanResult from "../components/meal-plan-result";
 import NemligForm from "../components/nemlig-form";
 import NemligTable from "../components/nemlig-table";
 import useUser from "../lib/useUser";
-import { GptResult } from "./api/mealplan";
 import { NemligResult } from "./api/nemlig";
 
 export default function MealGenie() {

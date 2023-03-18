@@ -50,7 +50,7 @@ const typeOptions = [
   { key: "5", text: "Fancy", value: "fancy food" },
 ];
 
-type GptResult = {
+export type GptResult = {
   planStr: string;
   plan: {
     day: string;

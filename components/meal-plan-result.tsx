@@ -1,5 +1,5 @@
 import { Header, Item, Message, Placeholder, Table } from "semantic-ui-react";
-import { GptResult } from "../pages/api/mealplan";
+import { GptResult } from "./meal-genie-form";
 
 export default function MealPlanResult(props: { result: GptResult | null; loading: boolean }) {
     if (props.loading) {
