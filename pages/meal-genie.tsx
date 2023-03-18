@@ -36,7 +36,7 @@ export default function MealGenie() {
             <Image
               src={"/images/openai_logo.svg"}
               alt="OpenAI"
-              width={118}
+              width={120}
               height={20}
               style={{ width: "75px", marginRight: "5px"}}
             ></Image>{" "} Model
