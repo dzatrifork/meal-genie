@@ -1,3 +1,4 @@
+import { CreateChatCompletionResponse, CreateCompletionResponse } from "openai";
 import React, { useState } from "react";
 import {
   Button,
@@ -11,7 +12,10 @@ import {
   Icon,
   Input,
 } from "semantic-ui-react";
-import { GptResult } from "../pages/api/mealplan";
+import { IngredientsResult } from "../pages/api/mealplan/chatgpt/ingredients";
+import { InitResult } from "../pages/api/mealplan/chatgpt/init";
+import { PlanResult } from "../pages/api/mealplan/chatgpt/plan";
+import { DavinciResult } from "../pages/api/mealplan/instructgpt/davinci";
 
 export type Values = {
   days?: number;
@@ -46,10 +50,18 @@ const typeOptions = [
   { key: "5", text: "Fancy", value: "fancy food" },
 ];
 
-const modelOptions = [
-  { key: "1", text: "GPT3", value: "gpt3" },
-  { key: "2", text: "DaVinci", value: "davinci" },
-];
+type GptResult = {
+  planStr: string;
+  plan: {
+    day: string;
+    description: string;
+  }[];
+  ingredients: {
+    name: string;
+    quantity: string;
+    unit: string;
+  }[];
+};
 
 export interface PropsType {
   result: (result: GptResult | null) => void;
@@ -87,29 +99,77 @@ const MealGenieForm = (props: PropsType) => {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     setLoading(true);
     props.loading(true);
+    props.result(null);
     event.preventDefault();
-    console.log(values);
     if (values.days == null || values.persons == null) {
       setLoading(false);
       return;
     }
 
-    const result: GptResult = await fetcher(
-      "/api/mealplan",
-      JSON.stringify({
-        days: values.days,
-        persons: values.persons,
-        breakfast: values.breakfast,
-        lunch: values.lunch,
-        dinner: values.dinner,
-        preferences: values.preferences,
-        ingredients: values.ingredients,
-        types: values.types,
-        model: props.model,
-      })
-    ).catch((e: Error) => e);
+    const body = {
+      days: values.days,
+      persons: values.persons,
+      breakfast: values.breakfast,
+      lunch: values.lunch,
+      dinner: values.dinner,
+      preferences: values.preferences,
+      ingredients: values.ingredients,
+      types: values.types,
+    };
 
-    props.result(result);
+    if (props.model === "davinci") {
+      const result: DavinciResult = await fetcher(
+        "/api/mealplan/instructgpt/davinci",
+        JSON.stringify(body)
+      ).catch((e: Error) => e);
+      props.result(result);
+    } else {
+      const init: InitResult = await fetcher(
+        "/api/mealplan/chatgpt/init",
+        JSON.stringify(body)
+      ).catch((e: Error) => e);
+
+      const ingredients: Promise<IngredientsResult> = fetcher(
+        "/api/mealplan/chatgpt/ingredients",
+        JSON.stringify({
+          messages: init.messages,
+        })
+      ).catch((e: Error) => {
+        console.log(e);
+        return null;
+      });
+
+      const plan: Promise<PlanResult> = fetcher(
+        "/api/mealplan/chatgpt/plan",
+        JSON.stringify({
+          messages: init.messages,
+        })
+      ).catch((e: Error) => {
+        console.log(e);
+        return null;
+      });
+
+      const res = await Promise.all([ingredients, plan]).then((values) => {
+        const ingredients = values[0];
+        const plan = values[1];
+
+        if (ingredients == null || plan == null) {
+          props.result(null);
+          return;
+        }
+
+        return {
+          planStr: init.planStr,
+          plan: plan.plan,
+          ingredients: ingredients.ingredients,
+        };
+      });
+      console.log(res);
+      
+      if (res != null) {
+          props.result(res);
+      }
+    }
     props.loading(false);
     setLoading(false);
   };

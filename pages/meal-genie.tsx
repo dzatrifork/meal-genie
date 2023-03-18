@@ -42,7 +42,7 @@ export default function MealGenie() {
             ></Image>{" "} Model
           </Menu.Item>
           <Menu.Item onClick={() => setModel("gpt3")} active={model === "gpt3"}>
-            Chat <Label color="blue">gpt-3.5-turbo</Label>
+            ChatGpt <Label color="blue">gpt-3.5-turbo</Label>
           </Menu.Item>
           <Menu.Item
             onClick={() => setModel("davinci")}
