@@ -6,17 +6,22 @@ import {
   CreateCompletionResponse,
   OpenAIApi,
 } from "openai";
-import { getMealPlanPrompt, MealPlanParams } from "../../../../lib/generatePrompt";
+import {
+  getMealPlanPrompt,
+  MealPlanParams,
+} from "../../../../lib/generatePrompt";
 import { sessionOptions } from "../../../../lib/session";
 
 const promptDavinci =
-  'Summarize the mealplan as a list with an entry for each day as well as all the ingredients in json-format as a list. Your response should be in JSON format ex. {"plan": [{"day": "Day 1", "description": "..."}], "ingredients": [{"name": "Flour", "quantity":"1", "unit": "kg"}]}. Values should be in danish. ';
+  'Summarize the mealplan as a list with an entry for each day as well as all the ingredients in json-format as a list. Your response should be in JSON format ex. {"plan": [{"day": "Day 1", "description": "...", "ingredients": "...", "directions": "..."}], "ingredients": [{"name": "Flour", "quantity":"1", "unit": "kg"}]}. Values should be in danish. ';
 
 export type DavinciResult = {
   planStr: string;
   plan: {
     day: string;
     description: string;
+    ingredients: string;
+    directions: string;
   }[];
   ingredients: {
     name: string;
@@ -25,7 +30,6 @@ export type DavinciResult = {
   }[];
   gptContent: (CreateChatCompletionResponse | CreateCompletionResponse)[];
 };
-
 
 type GptRequest = NextApiRequest & {
   body: MealPlanParams;
@@ -73,6 +77,12 @@ async function createDavinciCompletion(
   if (completion.data?.choices[0]?.text != null) {
     console.log(completion.data.choices[0].text.trim());
     const json = JSON.parse(completion.data.choices[0].text.trim());
+    if (Array.isArray(json.plan.ingredients)) {
+      json.plan.ingredients = json.plan.ingredients.join(", ");
+    }
+    if (Array.isArray(json.plan.directions)) {
+      json.plan.directions = json.plan.directions.join(", ");
+    }
     return {
       planStr: "",
       ...json,

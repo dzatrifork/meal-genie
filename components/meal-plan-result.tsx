@@ -2,13 +2,15 @@ import {
   Card,
   Container,
   Divider,
+  Grid,
   Header,
   Item,
   Message,
   Placeholder,
-  Table,
+  Table
 } from "semantic-ui-react";
 import { GptResult } from "./meal-genie-form";
+import NewlineText from "./newline-text";
 
 export default function MealPlanResult(props: {
   result: GptResult | null;
@@ -39,8 +41,39 @@ function Result(props: { result: GptResult | null; loading: boolean }) {
         props.result.plan.map((day, index) => (
           <Item key={index}>
             <Item.Content>
-              <Item.Header>{day.day}</Item.Header>
-              <Item.Description>{day.description}</Item.Description>
+              <Divider horizontal>{day.day}</Divider>
+              <Item.Description as={"h5"}>{day.description}</Item.Description>
+              <Divider hidden></Divider>
+              <Grid columns={2} relaxed>
+                <Grid.Column>
+                  {day.directions != null ? (
+                    <>
+                      <Item.Description as={"h5"}>
+                        Fremgangsmåde
+                      </Item.Description>
+                      <Item.Description>
+                        <NewlineText text={day.directions}></NewlineText>
+                      </Item.Description>
+                    </>
+                  ) : (
+                    <></>
+                  )}
+                </Grid.Column>
+                <Grid.Column>
+                  {day.ingredients != null ? (
+                    <>
+                      <Item.Description as={"h5"}>
+                        Ingredienser
+                      </Item.Description>
+                      <Item.Description>
+                        <NewlineText text={day.ingredients}></NewlineText>
+                      </Item.Description>
+                    </>
+                  ) : (
+                    <></>
+                  )}
+                </Grid.Column>
+              </Grid>
             </Item.Content>
           </Item>
         ))
@@ -73,7 +106,7 @@ function Result(props: { result: GptResult | null; loading: boolean }) {
         </Item>
       )}
       <Divider horizontal>
-        <Header>Ingredienser</Header>
+        <Header>Indkøbsliste</Header>
       </Divider>
 
       {props.result?.ingredients?.map != null ? (
@@ -86,8 +119,7 @@ function Result(props: { result: GptResult | null; loading: boolean }) {
                     <Table.Row key={index}>
                       <Table.Cell>{ing.name}</Table.Cell>
                       <Table.Cell>
-                        {ing.quantity}
-                        {ing.unit}
+                        {ing.quantity} {ing.unit}
                       </Table.Cell>
                     </Table.Row>
                   ))}

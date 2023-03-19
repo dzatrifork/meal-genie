@@ -6,15 +6,20 @@ import {
   CreateChatCompletionResponse,
   OpenAIApi,
 } from "openai";
+import { parseJson } from "../../../../lib/parseGptJson";
 import { sessionOptions } from "../../../../lib/session";
 
-const promptGBT3Plan =
+const promptGBT3PlanOld =
   'Summarize the mealplan as a list with an entry for each day. Your response should be in JSON format with two parameters "day" and "description" for each day ex. [{"day": "Day 1", "description": "..."}]. Values should be in danish. ';
+const promptGBT3Plan =
+  'Summarize the mealplan as a list with an entry for each day. Your response should be in JSON format with four parameters "day", "description", "ingredients" and "directions" with string values. Ex. [{"day": "Day 1", "description": "...", "ingredients": "...", "directions": "..."}]. All values should be in danish. ';
 
 export type PlanResult = {
   plan: {
     day: string;
     description: string;
+    ingredients: string;
+    directions: string;
   }[];
   gptContent: CreateChatCompletionResponse;
 };
@@ -62,18 +67,23 @@ async function createGPT35Completion(
     { role: "user", content: promptGBT3Plan },
   ]);
 
-  const data = await openai.createChatCompletion({
-    model: "gpt-3.5-turbo",
-    messages: planMessages,
-    temperature: 0.2,
-    max_tokens: 2024,
-  });
+  const data = await openai
+    .createChatCompletion({
+      model: "gpt-3.5-turbo",
+      messages: planMessages,
+      temperature: 0.2,
+      max_tokens: 2048, // The token count of your prompt plus max_tokens cannot exceed the model's context length. Most models have a context length of 2048 tokens (except for the newest models, which support 4096).
+    })
+    .catch((error) => {
+      console.log(error);
+      return error;
+    });
 
   const planJson = data.data.choices[0].message?.content;
 
   if (planJson != null) {
-    console.log(planJson.split("```")[1]);
-    let plan = JSON.parse(planJson.split("```")[1]);
+    let plan = parseJson(planJson);
+
     if (plan.keys != null && plan.keys().length === 1) {
       plan = plan[plan.keys()[0]];
     }

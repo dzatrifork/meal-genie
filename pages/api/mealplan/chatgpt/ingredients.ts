@@ -6,10 +6,11 @@ import {
   CreateChatCompletionResponse,
   OpenAIApi,
 } from "openai";
+import { parseJson } from "../../../../lib/parseGptJson";
 import { sessionOptions } from "../../../../lib/session";
 
 const promptGPT3Ingredients =
-  'Summarize the Ingredients as a list with an entry for each ingredient. Your response should be in JSON format with three parameters "name", "quantity" and "unit" for each ingredient ex. [{"name": "Flour", "quantity":"1", "unit": "kg"}]. Values should be in danish. ';
+  'Summarize all the ingredients as one list with an entry for each ingredient. Your response should be in JSON format with three parameters "name", "quantity" and "unit" for each ingredient ex. [{"name": "Flour", "quantity":"1", "unit": "kg"}]. Values should be in danish. ';
 
 export type IngredientsResult = {
   ingredients: {
@@ -21,7 +22,7 @@ export type IngredientsResult = {
 };
 
 export type IngredientsRequest = NextApiRequest & {
-    body: Body;
+  body: Body;
 };
 
 type Body = {
@@ -52,10 +53,7 @@ async function getIngredients(body: Body, openaiApiKey: string) {
   });
   const openai = new OpenAIApi(configuration);
 
-  return await createGPT35Completion(
-    body.messages,
-    openai
-  );
+  return await createGPT35Completion(body.messages, openai);
 }
 
 async function createGPT35Completion(
@@ -70,14 +68,13 @@ async function createGPT35Completion(
     model: "gpt-3.5-turbo",
     messages: ingredientMessages,
     temperature: 0.2,
-    max_tokens: 2024,
+    max_tokens: 2048, // The token count of your prompt plus max_tokens cannot exceed the model's context length. Most models have a context length of 2048 tokens (except for the newest models, which support 4096).
   });
 
   const ingredientsJson = data.data.choices[0].message?.content;
 
   if (ingredientsJson != null) {
-    console.log(ingredientsJson.split("```")[1]);
-    let ingredients = JSON.parse(ingredientsJson.split("```")[1]);
+    let ingredients = parseJson(ingredientsJson);
     if (ingredients.keys != null && ingredients.keys().length === 1) {
       ingredients = ingredients[ingredients.keys()[0]];
     }

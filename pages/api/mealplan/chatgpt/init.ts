@@ -39,8 +39,14 @@ async function handler(req: InitRequest, res: NextApiResponse) {
 }
 
 async function GetMealPlan(body: MealPlanParams, openaiApiKey: string) {
-  var customPrompt = getMealPlanPrompt(body);
+  const systemPrompt =
+    "You are a helpful kitchen chef. You describe recipes in great detail. You specify each ingredient individually." +
+    (body.preferences != null
+      ? ` You only propose ${body.preferences} dishes.`
+      : "");
+  console.log(systemPrompt);
 
+  var customPrompt = getMealPlanPrompt({ ...body, preferences: undefined });
   console.log(customPrompt);
 
   const configuration = new Configuration({
@@ -48,15 +54,16 @@ async function GetMealPlan(body: MealPlanParams, openaiApiKey: string) {
   });
   const openai = new OpenAIApi(configuration);
 
-  return await createGPT35Completion(customPrompt, openai);
+  return await createGPT35Completion(customPrompt, systemPrompt, openai);
 }
 
 async function createGPT35Completion(
   customPrompt: string,
+  systemPrompt: string,
   openai: OpenAIApi
 ): Promise<InitResult> {
   let messages: ChatCompletionRequestMessage[] = [
-    { role: "system", content: "You are a helpful assistant." },
+    { role: "system", content: systemPrompt },
     { role: "user", content: customPrompt },
   ];
   const completions = [];
@@ -64,7 +71,7 @@ async function createGPT35Completion(
     model: "gpt-3.5-turbo",
     messages: messages,
     temperature: 0.5,
-    max_tokens: 1024,
+    max_tokens: 2048, // The token count of your prompt plus max_tokens cannot exceed the model's context length. Most models have a context length of 2048 tokens (except for the newest models, which support 4096).
   });
 
   completions.push(mealPlan.data);

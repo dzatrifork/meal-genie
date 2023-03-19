@@ -9,6 +9,7 @@ specifiers:
   fomantic-ui: ^2.9.2
   gulp: ^4.0.2
   iron-session: ^6.3.1
+  jsonrepair: ^3.0.2
   next: 13.2.4
   openai: ^3.2.1
   react: 18.2.0
@@ -24,6 +25,7 @@ dependencies:
   eslint: 8.36.0
   eslint-config-next: 13.2.4_vgl77cfdswitgr47lm5swmv43m
   iron-session: 6.3.1_next@13.2.4
+  jsonrepair: 3.0.2
   next: 13.2.4_biqbaboplfbrettd7655fr4n2y
   openai: 3.2.1
   react: 18.2.0
@@ -3802,6 +3804,11 @@ packages:
     hasBin: true
     dependencies:
       minimist: 1.2.8
+    dev: false
+
+  /jsonrepair/3.0.2:
+    resolution: {integrity: sha512-jf3eC13iGklfXqpER/OV6q24rMhXwNAoMg+zPZgPVHxGLoDaNaKk+9TdsRtGQSIAsbC1xafiIAKSwThhtHCpcw==}
+    hasBin: true
     dev: false
 
   /jsx-ast-utils/3.3.3:

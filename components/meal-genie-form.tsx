@@ -1,4 +1,3 @@
-import { CreateChatCompletionResponse, CreateCompletionResponse } from "openai";
 import React, { useState } from "react";
 import {
   Button,
@@ -12,9 +11,7 @@ import {
   Icon,
   Input,
 } from "semantic-ui-react";
-import { IngredientsResult } from "../pages/api/mealplan/chatgpt/ingredients";
 import { InitResult } from "../pages/api/mealplan/chatgpt/init";
-import { PlanResult } from "../pages/api/mealplan/chatgpt/plan";
 import { DavinciResult } from "../pages/api/mealplan/instructgpt/davinci";
 
 export type Values = {
@@ -55,6 +52,8 @@ export type GptResult = {
   plan?: {
     day: string;
     description: string;
+    ingredients?: string;
+    directions?: string;
   }[];
   ingredients?: {
     name: string;
@@ -129,7 +128,7 @@ const MealGenieForm = (props: PropsType) => {
         JSON.stringify(body)
       ).catch((e: Error) => e);
 
-      let result: GptResult | null  = {
+      let result: GptResult | null = {
         planStr: init.planStr,
       };
       props.result(result);
@@ -138,40 +137,44 @@ const MealGenieForm = (props: PropsType) => {
         "/api/mealplan/chatgpt/ingredients",
         JSON.stringify({
           messages: init.messages,
-        }))
-      .then((res) => {
-        result = {
-          ...result,
-          ingredients: res.ingredients,
-        }
-        props.result(result);
-      }).catch((e: Error) => {
-        console.log(e);
-        return null;
-      });
+        })
+      )
+        .then((res) => {
+          result = {
+            ...result,
+            ingredients: res.ingredients,
+          };
+          props.result(result);
+        })
+        .catch((e: Error) => {
+          console.log(e);
+          return null;
+        });
 
       const plan = fetcher(
         "/api/mealplan/chatgpt/plan",
         JSON.stringify({
           messages: init.messages,
-        }))
-      .then((res) => {
-        result = {
-          ...result,
-          plan: res.plan,
-          planStr: res.planStr,
-        }
-        props.result(result);
-      }).catch((e: Error) => {
-        console.log(e);
-        return null;
-      });
+        })
+      )
+        .then((res) => {
+          result = {
+            ...result,
+            plan: res.plan,
+            planStr: res.planStr,
+          };
+          props.result(result);
+        })
+        .catch((e: Error) => {
+          console.log(e);
+          return null;
+        });
 
       await Promise.all([ingredients, plan]);
-      console.log(result);      
-      
+      console.log(result);
+
       if (result != null) {
-          props.result(result);
+        props.result(result);
       }
     }
     props.loading(false);
@@ -358,8 +361,11 @@ const MealGenieForm = (props: PropsType) => {
             />
           </Form.Group>
           <Divider></Divider>
-          <Button onClick={() => handleAddIngredient()} color="blue" 
-              disabled={loading}>
+          <Button
+            onClick={() => handleAddIngredient()}
+            color="blue"
+            disabled={loading}
+          >
             <Icon name="plus"></Icon> Tilføj ingrediens
           </Button>
           {values.ingredients.length > 0 ? (
@@ -411,8 +417,11 @@ const MealGenieForm = (props: PropsType) => {
             </>
           ))}
           <Divider></Divider>
-          <Button onClick={() => handleAddType()} color="blue"
-              disabled={loading}>
+          <Button
+            onClick={() => handleAddType()}
+            color="blue"
+            disabled={loading}
+          >
             <Icon name="plus"></Icon>Tilføj Type
           </Button>
           {values.types.length > 0 ? (
@@ -463,7 +472,12 @@ const MealGenieForm = (props: PropsType) => {
             </>
           ))}
           <Divider></Divider>
-          <Form.Field type="submit" control={Button} color="blue" loading={loading}>
+          <Form.Field
+            type="submit"
+            control={Button}
+            color="blue"
+            loading={loading}
+          >
             Opret madplan
           </Form.Field>
         </Form>

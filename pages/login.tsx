@@ -59,6 +59,7 @@ export default function Login() {
                 }}
               >
                 <Form.Input
+                  type="password"
                   label="OpenAI API key"
                   name="key"
                   control={Input}

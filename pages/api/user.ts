@@ -7,7 +7,10 @@ export type User = {
   openaiApiKey: string;
 };
 
-async function userRoute(req: NextApiRequest, res: NextApiResponse<User>) {
+async function userRoute(
+  req: NextApiRequest,
+  res: NextApiResponse<{ isLoggedIn: boolean }>
+) {
   if (process.env.OPENAI_API_KEY != null) {
     const user: User = {
       openaiApiKey: process.env.OPENAI_API_KEY,
@@ -17,23 +20,18 @@ async function userRoute(req: NextApiRequest, res: NextApiResponse<User>) {
     req.session.user = user;
     await req.session.save();
     res.json({
-      openaiApiKey: process.env.OPENAI_API_KEY,
+      isLoggedIn: true,
+    });
+  } else if (req.session.user && req.session.user.openaiApiKey != null) {
+    // in a real world application you might read the user id from the session and then do a database request
+    // to get more information on the user if needed
+    res.json({
       isLoggedIn: true,
     });
   } else {
-    if (req.session.user) {
-      // in a real world application you might read the user id from the session and then do a database request
-      // to get more information on the user if needed
-      res.json({
-        ...req.session.user,
-        isLoggedIn: true,
-      });
-    } else {
-      res.json({
-        isLoggedIn: false,
-        openaiApiKey: "",
-      });
-    }
+    res.json({
+      isLoggedIn: false,
+    });
   }
 }
 
