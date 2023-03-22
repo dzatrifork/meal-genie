@@ -16,7 +16,7 @@ export type MealPlanParams = {
 };
 
 const prompt =
-  "Make a {days} day food plan for {people} people, with {meals}. {preferences} {ingredients} {types} ";
+  "Make a {days} day food plan for {people} people. {meals}{preferences}{ingredients}{types} Give me the answer in danish.";
 
 export function getMealPlanPrompt(body: MealPlanParams) {
   var customPrompt = prompt
@@ -38,13 +38,13 @@ function getMeals(params: MealPlanParams): string {
     res.push("lunch");
   }
   if (params.dinner) {
-    res.push("evening meals");
+    res.push("dinner");
   }
 
   if (res.length === 1) {
-    return "only " + res[0];
+    return `Only include ${res[0]}. `;
   } else {
-    return `${res.slice(0, -1).join(", ")} and ${res.slice(-1)[0]}`;
+    return `Only include ${res.slice(0, -1).join(", ")} and ${res.slice(-1)[0]}. `;
   }
 }
 
@@ -53,7 +53,7 @@ function getPreferences(params: MealPlanParams): string {
     return "";
   }
 
-  return `All meals should be ${params.preferences}.`;
+  return `All meals should be ${params.preferences}. `;
 }
 
 function getIngredientPreferences(params: MealPlanParams): string {
@@ -63,7 +63,7 @@ function getIngredientPreferences(params: MealPlanParams): string {
 
   const i = params.ingredients.map(
     (v) =>
-      `The mealplan must include ${v.value} for ${v.days} days out of ${params.days} days`
+      `The mealplan must include ${v.value} for ${v.days} ${(v.days ?? 0) > 1 ? 'days': 'day'}. `
   );
 
   return i.join(". ") + ". ";
@@ -76,7 +76,7 @@ function getTypesPreferences(params: MealPlanParams): string {
 
   const i = params.types.map(
     (v) =>
-      `The mealplan must include ${v.days} days with ${v.value} out of ${params.days} days`
+      `The mealplan must include ${v.days} ${(v.days ?? 0) > 1 ? 'days': 'day'} with ${v.value}`
   );
 
   return i.join(". ") + ". ";

@@ -39,14 +39,10 @@ async function handler(req: InitRequest, res: NextApiResponse) {
 }
 
 async function GetMealPlan(body: MealPlanParams, openaiApiKey: string) {
-  const systemPrompt =
-    "You are a helpful kitchen chef. You describe recipes in great detail. You specify each ingredient individually." +
-    (body.preferences != null
-      ? ` You only propose ${body.preferences} dishes.`
-      : "");
+  const systemPrompt = "You are a kitchen chef. You describe recipes in great detail. You specify each ingredient individually. You only include the results in your answer."
   console.log(systemPrompt);
 
-  var customPrompt = getMealPlanPrompt({ ...body, preferences: undefined });
+  var customPrompt = getMealPlanPrompt(body);
   console.log(customPrompt);
 
   const configuration = new Configuration({

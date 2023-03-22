@@ -1,3 +1,5 @@
+import { Divider, Header } from "semantic-ui-react";
+
 export default function NewlineText(props: { text: string | string[] }) {
   const text = props.text;
   if (Array.isArray(text)) {
@@ -25,7 +27,15 @@ export default function NewlineText(props: { text: string | string[] }) {
   }
 
   if (text.split != null) {
-    const newText = text.split("\n").map((str) => <p key={str}>{str}</p>);
+    const newText = text
+      .split("\n")
+      .map((str) =>
+        str === "" ? (
+          <Divider key={str} hidden></Divider>
+        ) : (
+          str.includes(':') ? <Header as={'h4'} key={str}>{str}</Header> : <p key={str}>{str}</p>
+        )
+      );
 
     return <>{newText}</>;
   }

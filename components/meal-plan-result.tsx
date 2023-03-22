@@ -7,7 +7,7 @@ import {
   Item,
   Message,
   Placeholder,
-  Table
+  Table,
 } from "semantic-ui-react";
 import { GptResult } from "./meal-genie-form";
 import NewlineText from "./newline-text";
@@ -42,38 +42,17 @@ function Result(props: { result: GptResult | null; loading: boolean }) {
           <Item key={index}>
             <Item.Content>
               <Divider horizontal>{day.day}</Divider>
-              <Item.Description as={"h5"}>{day.description}</Item.Description>
-              <Divider hidden></Divider>
-              <Grid columns={2} relaxed>
-                <Grid.Column>
-                  {day.directions != null ? (
-                    <>
-                      <Item.Description as={"h5"}>
-                        Fremgangsmåde
-                      </Item.Description>
-                      <Item.Description>
-                        <NewlineText text={day.directions}></NewlineText>
-                      </Item.Description>
-                    </>
-                  ) : (
-                    <></>
-                  )}
-                </Grid.Column>
-                <Grid.Column>
-                  {day.ingredients != null ? (
-                    <>
-                      <Item.Description as={"h5"}>
-                        Ingredienser
-                      </Item.Description>
-                      <Item.Description>
-                        <NewlineText text={day.ingredients}></NewlineText>
-                      </Item.Description>
-                    </>
-                  ) : (
-                    <></>
-                  )}
-                </Grid.Column>
-              </Grid>
+              {day.directions != null ? (
+                <>
+                  <Item.Description>
+                    <Container text>
+                      <NewlineText text={day.directions}></NewlineText>
+                    </Container>
+                  </Item.Description>
+                </>
+              ) : (
+                <></>
+              )}
             </Item.Content>
           </Item>
         ))

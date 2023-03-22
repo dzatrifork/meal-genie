@@ -1,15 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import {
-  Card,
-  Container,
-  Grid,
-  Header,
-  Label,
-  Menu,
-  Message,
-} from "semantic-ui-react";
+import { Card, Grid, Header, Label, Menu, Message } from "semantic-ui-react";
 import Layout from "../components/layout";
 import MealGenieForm, { GptResult } from "../components/meal-genie-form";
 import MealPlanResult from "../components/meal-plan-result";

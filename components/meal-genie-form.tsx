@@ -155,6 +155,7 @@ const MealGenieForm = (props: PropsType) => {
         "/api/mealplan/chatgpt/plan",
         JSON.stringify({
           messages: init.messages,
+          days: values.days,
         })
       )
         .then((res) => {
@@ -477,6 +478,7 @@ const MealGenieForm = (props: PropsType) => {
             control={Button}
             color="blue"
             loading={loading}
+            disabled={loading}
           >
             Opret madplan
           </Form.Field>

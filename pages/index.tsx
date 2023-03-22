@@ -4,7 +4,6 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { Container, Image, Transition } from "semantic-ui-react";
 import Layout from "../components/layout";
-import "../semantic/dist/semantic.min.css";
 
 export default function Home() {
   const router = useRouter();

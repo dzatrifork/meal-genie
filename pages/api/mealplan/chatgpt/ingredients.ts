@@ -10,7 +10,7 @@ import { parseJson } from "../../../../lib/parseGptJson";
 import { sessionOptions } from "../../../../lib/session";
 
 const promptGPT3Ingredients =
-  'Summarize all the ingredients as one list with an entry for each ingredient. Your response should be in JSON format with three parameters "name", "quantity" and "unit" for each ingredient ex. [{"name": "Flour", "quantity":"1", "unit": "kg"}]. Values should be in danish. ';
+  'Summarize all the ingredients as one list with an entry for each ingredient. Your response should be in JSON format with three parameters "name", "quantity" and "unit" for each ingredient ex. [{"name": "Flour", "quantity":"1", "unit": "kg"}]. ';
 
 export type IngredientsResult = {
   ingredients: {
@@ -46,8 +46,6 @@ async function handler(req: IngredientsRequest, res: NextApiResponse) {
 }
 
 async function getIngredients(body: Body, openaiApiKey: string) {
-  console.log(promptGPT3Ingredients);
-
   const configuration = new Configuration({
     apiKey: openaiApiKey,
   });
@@ -64,12 +62,15 @@ async function createGPT35Completion(
     { role: "user", content: promptGPT3Ingredients },
   ]);
 
-  const data = await openai.createChatCompletion({
-    model: "gpt-3.5-turbo",
-    messages: ingredientMessages,
-    temperature: 0.2,
-    max_tokens: 2048, // The token count of your prompt plus max_tokens cannot exceed the model's context length. Most models have a context length of 2048 tokens (except for the newest models, which support 4096).
-  });
+  const data = await openai.createChatCompletion(
+    {
+      model: "gpt-3.5-turbo",
+      messages: ingredientMessages,
+      temperature: 0.2,
+      max_tokens: 2048, // The token count of your prompt plus max_tokens cannot exceed the model's context length. Most models have a context length of 2048 tokens (except for the newest models, which support 4096).
+    },
+    { timeout: 180000 }
+  );
 
   const ingredientsJson = data.data.choices[0].message?.content;
 

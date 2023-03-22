@@ -1,18 +1,7 @@
 import { withIronSessionApiRoute } from "iron-session/next";
 import { NextApiRequest, NextApiResponse } from "next";
-import {
-  ChatCompletionRequestMessage,
-  Configuration,
-  CreateChatCompletionResponse,
-  OpenAIApi,
-} from "openai";
-import { parseJson } from "../../../../lib/parseGptJson";
+import { ChatCompletionRequestMessage, Configuration, OpenAIApi } from "openai";
 import { sessionOptions } from "../../../../lib/session";
-
-const promptGBT3PlanOld =
-  'Summarize the mealplan as a list with an entry for each day. Your response should be in JSON format with two parameters "day" and "description" for each day ex. [{"day": "Day 1", "description": "..."}]. Values should be in danish. ';
-const promptGBT3Plan =
-  'Summarize the mealplan as a list with an entry for each day. Your response should be in JSON format with four parameters "day", "description", "ingredients" and "directions" with string values. Ex. [{"day": "Day 1", "description": "...", "ingredients": "...", "directions": "..."}]. All values should be in danish. ';
 
 export type PlanResult = {
   plan: {
@@ -21,11 +10,11 @@ export type PlanResult = {
     ingredients: string;
     directions: string;
   }[];
-  gptContent: CreateChatCompletionResponse;
 };
 
 type Body = {
   messages: ChatCompletionRequestMessage[];
+  days: number;
 };
 
 type PlanRequest = NextApiRequest & {
@@ -49,52 +38,56 @@ async function handler(req: PlanRequest, res: NextApiResponse) {
 }
 
 async function getPlan(body: Body, openaiApiKey: string) {
-  console.log(promptGBT3Plan);
-
   const configuration = new Configuration({
     apiKey: openaiApiKey,
   });
   const openai = new OpenAIApi(configuration);
 
-  return await createGPT35Completion(body.messages, openai);
+  return await createGPT35Completion(body, openai);
 }
 
-async function createGPT35Completion(
-  messages: ChatCompletionRequestMessage[],
-  openai: OpenAIApi
-) {
-  let planMessages = messages.concat([
-    { role: "user", content: promptGBT3Plan },
-  ]);
+async function createGPT35Completion(body: Body, openai: OpenAIApi) {
+  const messages = body.messages;
 
-  const data = await openai
-    .createChatCompletion({
-      model: "gpt-3.5-turbo",
-      messages: planMessages,
-      temperature: 0.2,
-      max_tokens: 2048, // The token count of your prompt plus max_tokens cannot exceed the model's context length. Most models have a context length of 2048 tokens (except for the newest models, which support 4096).
-    })
-    .catch((error) => {
-      console.log(error);
-      return error;
-    });
+  const promises = [];
 
-  const planJson = data.data.choices[0].message?.content;
-
-  if (planJson != null) {
-    let plan = parseJson(planJson);
-
-    if (plan.keys != null && plan.keys().length === 1) {
-      plan = plan[plan.keys()[0]];
-    }
-
-    return {
-      plan,
-      gptContent: data.data,
-    };
+  for (let i = 1; i <= body.days; i++) {
+    const planMessages = messages.concat([
+      {
+        role: "user",
+        content: `Give me steps by step directions for the all meals of day ${i} in danish.`,
+      },
+    ]);
+    const dayData = openai
+      .createChatCompletion(
+        {
+          model: "gpt-3.5-turbo",
+          messages: planMessages,
+          temperature: 0.2,
+          max_tokens: 2048, // The token count of your prompt plus max_tokens cannot exceed the model's context length. Most models have a context length of 2048 tokens (except for the newest models, which support 4096).
+        },
+        { timeout: 180000 }
+      )
+      .catch((error) => {
+        console.log(error);
+        return error;
+      });
+    promises.push(dayData);
   }
 
-  throw Error("Failed to create completion");
+  const plan = await Promise.all(promises).then((values) => {
+    return values.map((value, index) => {
+      console.log(index, value.data.choices[0].message?.content);
+      return {
+        day: `Dag ${index + 1}`,
+        directions: value.data.choices[0].message?.content,
+      };
+    });
+  });
+
+  return {
+    plan,
+  };
 }
 
 export default withIronSessionApiRoute(handler, sessionOptions);
