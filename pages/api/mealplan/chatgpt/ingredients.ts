@@ -27,6 +27,7 @@ export type IngredientsRequest = NextApiRequest & {
 
 type Body = {
   messages: ChatCompletionRequestMessage[];
+  model: string;
 };
 
 async function handler(req: IngredientsRequest, res: NextApiResponse) {
@@ -38,36 +39,37 @@ async function handler(req: IngredientsRequest, res: NextApiResponse) {
     return res.status(401).json({ message: "Unauthorized" });
   }
 
-  const result = await getIngredients(req.body, req.session.user.openaiApiKey);
+  const result = await getIngredients(req, req.session.user.openaiApiKey);
   if (result == null) {
     return new Response();
   }
   return res.status(201).json(result);
 }
 
-async function getIngredients(body: Body, openaiApiKey: string) {
+async function getIngredients(req: IngredientsRequest, openaiApiKey: string) {
+  const body = req.body;
   const configuration = new Configuration({
     apiKey: openaiApiKey,
   });
   const openai = new OpenAIApi(configuration);
 
-  return await createGPT35Completion(body.messages, openai);
+  return await createGPT35Completion(body.messages, openai, body.model ?? "gpt-3.5-turbo");
 }
 
 async function createGPT35Completion(
   messages: ChatCompletionRequestMessage[],
-  openai: OpenAIApi
+  openai: OpenAIApi,
+  model: string
 ): Promise<IngredientsResult> {
   let ingredientMessages = messages.concat([
     { role: "user", content: promptGPT3Ingredients },
-  ]);
-
+  ]);  
   const data = await openai.createChatCompletion(
     {
-      model: "gpt-3.5-turbo",
+      model: model,
       messages: ingredientMessages,
       temperature: 0.2,
-      max_tokens: 2048, // The token count of your prompt plus max_tokens cannot exceed the model's context length. Most models have a context length of 2048 tokens (except for the newest models, which support 4096).
+      max_tokens: model === "gpt-4" ? 5000 : 2048,  // The token count of your prompt plus max_tokens cannot exceed the model's context length. Most models have a context length of 2048 tokens (except for the newest models, which support 4096).
     },
     { timeout: 180000 }
   );

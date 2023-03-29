@@ -13,6 +13,7 @@ export type MealPlanParams = {
     value?: string;
     days?: number;
   }[];
+  model: string;
 };
 
 const prompt =

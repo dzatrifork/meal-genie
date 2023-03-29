@@ -31,14 +31,17 @@ async function handler(req: InitRequest, res: NextApiResponse) {
     return res.status(401).json({ message: "Unauthorized" });
   }
 
-  const result = await GetMealPlan(req.body, req.session.user.openaiApiKey);
+  const result = await GetMealPlan(req, req.session.user.openaiApiKey);
   if (result == null) {
     return new Response();
   }
   return res.status(201).json(result);
 }
 
-async function GetMealPlan(body: MealPlanParams, openaiApiKey: string) {
+async function GetMealPlan(req: InitRequest, openaiApiKey: string) {
+  const body = req.body;
+  console.log(body);
+  
   const systemPrompt = "You are a kitchen chef. You describe recipes in great detail. You specify each ingredient individually. You only include the results in your answer."
   console.log(systemPrompt);
 
@@ -50,13 +53,14 @@ async function GetMealPlan(body: MealPlanParams, openaiApiKey: string) {
   });
   const openai = new OpenAIApi(configuration);
 
-  return await createGPT35Completion(customPrompt, systemPrompt, openai);
+  return await createGPT35Completion(customPrompt, systemPrompt, openai, body.model ?? "gpt-3.5-turbo");
 }
 
 async function createGPT35Completion(
   customPrompt: string,
   systemPrompt: string,
-  openai: OpenAIApi
+  openai: OpenAIApi,
+  model: string
 ): Promise<InitResult> {
   let messages: ChatCompletionRequestMessage[] = [
     { role: "system", content: systemPrompt },
@@ -64,10 +68,10 @@ async function createGPT35Completion(
   ];
   const completions = [];
   const mealPlan = await openai.createChatCompletion({
-    model: "gpt-3.5-turbo",
+    model: model,
     messages: messages,
-    temperature: 0.5,
-    max_tokens: 2048, // The token count of your prompt plus max_tokens cannot exceed the model's context length. Most models have a context length of 2048 tokens (except for the newest models, which support 4096).
+    temperature: 1,
+    max_tokens: model === "gpt-4" ? 6000 : 2048, // The token count of your prompt plus max_tokens cannot exceed the model's context length. Most models have a context length of 2048 tokens (except for the newest models, which support 4096).
   });
 
   completions.push(mealPlan.data);

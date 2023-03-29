@@ -114,6 +114,7 @@ const MealGenieForm = (props: PropsType) => {
       preferences: values.preferences,
       ingredients: values.ingredients,
       types: values.types,
+      model: props.model,
     };
 
     if (props.model === "davinci") {
@@ -122,7 +123,7 @@ const MealGenieForm = (props: PropsType) => {
         JSON.stringify(body)
       ).catch((e: Error) => e);
       props.result(result);
-    } else {
+    } else {      
       const init: InitResult = await fetcher(
         "/api/mealplan/chatgpt/init",
         JSON.stringify(body)
@@ -137,6 +138,7 @@ const MealGenieForm = (props: PropsType) => {
         "/api/mealplan/chatgpt/ingredients",
         JSON.stringify({
           messages: init.messages,
+          model: props.model
         })
       )
         .then((res) => {

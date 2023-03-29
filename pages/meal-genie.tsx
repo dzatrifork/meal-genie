@@ -15,7 +15,7 @@ export default function MealGenie() {
   const [loading, setLoading] = useState<boolean>(false);
   const [nemligResult, setNemligResult] = useState<NemligResult | null>(null);
   const [nemligLoading, setNemligloading] = useState<boolean>(false);
-  const [model, setModel] = useState<string>("gpt3");
+  const [model, setModel] = useState<string>("gpt-4");
 
   useUser({ redirectTo: "/login" });
 
@@ -33,21 +33,23 @@ export default function MealGenie() {
             ></Image>{" "}
             Model
           </Menu.Item>
-          <Menu.Item onClick={() => setModel("gpt3")} active={model === "gpt3"}>
-            ChatGpt <Label color="blue">gpt-3.5-turbo</Label>
+          <Menu.Item
+            onClick={() => setModel("gpt-4")}
+            active={model === "gpt-4"}
+          >
+            GPT-4 <Label color="blue">gpt-4-8k</Label>
+          </Menu.Item>
+          <Menu.Item
+            onClick={() => setModel("gpt-3.5-turbo")}
+            active={model === "gpt-3.5-turbo"}
+          >
+            ChatGPT <Label color="blue">gpt-3.5-turbo</Label>
           </Menu.Item>
           <Menu.Item
             onClick={() => setModel("davinci")}
             active={model === "davinci"}
           >
             InstructGPT <Label color="blue">davinci</Label>
-          </Menu.Item>
-          <Menu.Item
-            disabled
-            onClick={() => setModel("gpt4")}
-            active={model === "gpt4"}
-          >
-            GPT-4 <Label color="blue">Coming soon</Label>
           </Menu.Item>
           <Menu.Item position="right">
             {" "}
@@ -72,13 +74,13 @@ export default function MealGenie() {
             <Card fluid>
               <Card.Content>
                 <Header size="small">
-                  Export to{" "}
+                  Føj indkøbslisten til{" "}
                   <Image
                     id="nemlig-img"
                     src="/images/nemlig-web-logo.svg"
                     alt={"Nemlig.com"}
                     width={90}
-                    height={90}
+                    height={80}
                   ></Image>
                 </Header>
               </Card.Content>
