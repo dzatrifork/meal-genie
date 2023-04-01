@@ -47,14 +47,20 @@ const typeOptions = [
   { key: "5", text: "Fancy", value: "fancy food" },
 ];
 
+export type Meal =  {
+  description: string;
+  ingredients?: { name: string; quantity: number; unit: string }[];
+  directions?: string[];
+};
+
+export type Day = {
+  day: string;
+  meals: Meal[];
+};
+
 export type GptResult = {
   planStr?: string;
-  plan?: {
-    day: string;
-    description: string;
-    ingredients?: string;
-    directions?: string;
-  }[];
+  plan?: Day[];
   ingredients?: {
     name: string;
     quantity: string;
@@ -116,69 +122,60 @@ const MealGenieForm = (props: PropsType) => {
       types: values.types,
       model: props.model,
     };
+    const init: InitResult = await fetcher(
+      "/api/mealplan/chatgpt/init",
+      JSON.stringify(body)
+    ).catch((e: Error) => e);
 
-    if (props.model === "davinci") {
-      const result: DavinciResult = await fetcher(
-        "/api/mealplan/instructgpt/davinci",
-        JSON.stringify(body)
-      ).catch((e: Error) => e);
-      props.result(result);
-    } else {      
-      const init: InitResult = await fetcher(
-        "/api/mealplan/chatgpt/init",
-        JSON.stringify(body)
-      ).catch((e: Error) => e);
+    let result: GptResult | null = {
+      planStr: init.planStr,
+    };
+    props.result(result);
 
-      let result: GptResult | null = {
-        planStr: init.planStr,
-      };
-      props.result(result);
-
-      const ingredients = fetcher(
-        "/api/mealplan/chatgpt/ingredients",
-        JSON.stringify({
-          messages: init.messages,
-          model: props.model
-        })
-      )
-        .then((res) => {
-          result = {
-            ...result,
-            ingredients: res.ingredients,
-          };
-          props.result(result);
-        })
-        .catch((e: Error) => {
-          console.log(e);
-          return null;
-        });
-
-      const plan = fetcher(
-        "/api/mealplan/chatgpt/plan",
-        JSON.stringify({
-          messages: init.messages,
-          days: values.days,
-        })
-      )
-        .then((res) => {
-          result = {
-            ...result,
-            plan: res.plan,
-            planStr: res.planStr,
-          };
-          props.result(result);
-        })
-        .catch((e: Error) => {
-          console.log(e);
-          return null;
-        });
-
-      await Promise.all([ingredients, plan]);
-      console.log(result);
-
-      if (result != null) {
+    const ingredients = fetcher(
+      "/api/mealplan/chatgpt/ingredients",
+      JSON.stringify({
+        messages: init.messages,
+        model: props.model,
+      })
+    )
+      .then((res) => {
+        result = {
+          ...result,
+          ingredients: res.ingredients,
+        };
         props.result(result);
-      }
+      })
+      .catch((e: Error) => {
+        console.log(e);
+        return null;
+      });
+
+    const plan = fetcher(
+      "/api/mealplan/chatgpt/plan",
+      JSON.stringify({
+        messages: init.messages,
+        days: values.days,
+      })
+    )
+      .then((res) => {
+        result = {
+          ...result,
+          plan: res.plan,
+          planStr: res.planStr,
+        };
+        props.result(result);
+      })
+      .catch((e: Error) => {
+        console.log(e);
+        return null;
+      });
+
+    await Promise.all([ingredients, plan]);
+    console.log(result);
+
+    if (result != null) {
+      props.result(result);
     }
     props.loading(false);
     setLoading(false);

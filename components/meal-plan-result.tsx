@@ -1,15 +1,19 @@
+import { useState } from "react";
 import {
+  Accordion,
   Card,
   Container,
   Divider,
   Grid,
   Header,
+  Icon,
   Item,
   Message,
   Placeholder,
   Table,
 } from "semantic-ui-react";
-import { GptResult } from "./meal-genie-form";
+import useIsMobile from "../lib/useIsMobile";
+import { GptResult, Meal } from "./meal-genie-form";
 import NewlineText from "./newline-text";
 
 export default function MealPlanResult(props: {
@@ -31,6 +35,57 @@ export default function MealPlanResult(props: {
   );
 }
 
+function DayResult(props: { meal: Meal }) {
+  const meal = props.meal;
+  const [active, setActive] = useState<boolean>(true);
+
+  const isMobile = useIsMobile();
+
+  return (
+    <>
+      <Accordion.Title
+        icon="dropdown"
+        index={0}
+        onClick={() => setActive(!active)}
+        active={active}
+      >
+        <Icon name="dropdown" />
+        {meal.description}
+      </Accordion.Title>
+      <Accordion.Content active={active}>
+        <Grid columns={2} relaxed>
+          <Grid.Column width={isMobile ? 16 : undefined}>
+            {meal.directions != null ? (
+              <>
+                <Item.Description as={"h5"}>Fremgangsmåde</Item.Description>
+                <Item.Description>
+                  <NewlineText text={meal.directions}></NewlineText>
+                </Item.Description>
+              </>
+            ) : (
+              <></>
+            )}
+          </Grid.Column>
+          <Grid.Column>
+            {meal.ingredients != null ? (
+              <>
+                <Item.Description as={"h5"}>Ingredienser</Item.Description>
+                {meal.ingredients.map((ing, index) => (
+                  <Item.Description key={index}>
+                    {ing.quantity}{ing.unit != null ? " " + ing.unit : ""} {ing.name} 
+                  </Item.Description>
+                ))}
+              </>
+            ) : (
+              <></>
+            )}
+          </Grid.Column>
+        </Grid>
+      </Accordion.Content>
+    </>
+  );
+}
+
 function Result(props: { result: GptResult | null; loading: boolean }) {
   return (
     <Item.Group>
@@ -42,17 +97,15 @@ function Result(props: { result: GptResult | null; loading: boolean }) {
           <Item key={index}>
             <Item.Content>
               <Divider horizontal>{day.day}</Divider>
-              {day.directions != null ? (
-                <>
-                  <Item.Description>
-                    <Container text>
-                      <NewlineText text={day.directions}></NewlineText>
-                    </Container>
-                  </Item.Description>
-                </>
-              ) : (
-                <></>
-              )}
+              <Accordion styled fluid>
+                {day.meals != null ? (
+                  day.meals.map((meal, index) => (
+                    <DayResult meal={meal} key={index}></DayResult>
+                  ))
+                ) : (
+                  <></>
+                )}
+              </Accordion>
             </Item.Content>
           </Item>
         ))
@@ -96,7 +149,9 @@ function Result(props: { result: GptResult | null; loading: boolean }) {
                 <Table.Body>
                   {props.result.ingredients.map((ing, index) => (
                     <Table.Row key={index}>
-                      <Table.Cell>{ing.name}</Table.Cell>
+                      <Table.Cell>
+                        {ing.name[0].toUpperCase() + ing.name.slice(1)}
+                      </Table.Cell>
                       <Table.Cell>
                         {ing.quantity} {ing.unit}
                       </Table.Cell>
