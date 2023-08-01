@@ -10,7 +10,7 @@ import { parseJson } from "../../../../lib/parseGptJson";
 import { sessionOptions } from "../../../../lib/session";
 
 const promptGPT3Ingredients =
-  'Summarize all the ingredients as one list with an entry for each ingredient. Your response should be in JSON format with three parameters "name", "quantity" and "unit" for each ingredient ex. [{"name": "Flour", "quantity":"1", "unit": "kg"}]. ';
+  'Summarize all the ingredients as one list with an entry for each ingredient in danish. Your response should be in JSON format with three parameters "name", "quantity" and "unit" for each ingredient ex. [{"name": "Flour", "quantity":"1", "unit": "kg"}]. ';
 
 export type IngredientsResult = {
   ingredients: {
@@ -53,7 +53,11 @@ async function getIngredients(req: IngredientsRequest, openaiApiKey: string) {
   });
   const openai = new OpenAIApi(configuration);
 
-  return await createGPT35Completion(body.messages, openai, body.model ?? "gpt-3.5-turbo");
+  return await createGPT35Completion(
+    body.messages,
+    openai,
+    body.model ?? "gpt-3.5-turbo"
+  );
 }
 
 async function createGPT35Completion(
@@ -63,13 +67,12 @@ async function createGPT35Completion(
 ): Promise<IngredientsResult> {
   let ingredientMessages = messages.concat([
     { role: "user", content: promptGPT3Ingredients },
-  ]);  
+  ]);
   const data = await openai.createChatCompletion(
     {
       model: model,
       messages: ingredientMessages,
       temperature: 0.2,
-      max_tokens: model === "gpt-4" ? 5000 : 2048,  // The token count of your prompt plus max_tokens cannot exceed the model's context length. Most models have a context length of 2048 tokens (except for the newest models, which support 4096).
     },
     { timeout: 180000 }
   );

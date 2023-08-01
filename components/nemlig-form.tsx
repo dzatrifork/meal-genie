@@ -1,72 +1,26 @@
-import React, { useState } from "react";
+import React from "react";
 import { Button, Card, Form, Input } from "semantic-ui-react";
-import { NemligResult } from "../pages/api/nemlig";
-import { GptResult } from "./meal-genie-form";
+import { useMealPlanStore } from "../lib/store";
 
-export type Values = {
-  user?: string;
-  pwd?: string;
-};
-
-export interface PropsType {
-  mealPlan: GptResult;
-  nemligResult: (result: NemligResult | null) => void;
-  nemLigloading: (result: boolean) => void;
-}
-
-export interface RefType {
-  result: GptResult | null;
-}
-
-const fetcher = (url: string, body: string) =>
-  fetch(url, {
-    method: "POST",
-    body: body,
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    },
-  }).then((res) => res.json());
-
-const NemligForm = (props: PropsType) => {
-  const [loading, setLoading] = useState<boolean>(false);
-  const [values, setValues] = useState<Values>({
-    user: undefined,
-    pwd: undefined,
-  });
+const NemligForm = () => {
+  const store = useMealPlanStore();
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    setLoading(true);
-    props.nemLigloading(true);
     event.preventDefault();
-    console.log(values);
-    const names = props.mealPlan.ingredients?.map((i) => i.name);
-    const nemligResult = await fetcher(
-      "api/nemlig",
-      JSON.stringify({
-        username: values.user,
-        password: values.pwd,
-        productNames: names,
-      })
-    );
-    props.nemligResult(nemligResult);
-    props.nemLigloading(false);
-    setLoading(false);
-  };
-
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setValues({ ...values, [event.target.name]: event.target.value });
+    store.submitNemlig();
   };
 
   return (
     <>
       <Card.Content>
-        <Form onSubmit={handleSubmit} loading={loading}>
+        <Form onSubmit={handleSubmit} loading={store.nemligLoading}>
           <Form.Field
             label="Bruger"
             type="email"
             control={Input}
-            onChange={handleChange}
+            onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+              store.setNemligUsername(event.target.value);
+            }}
             name="user"
             required
           />
@@ -74,7 +28,9 @@ const NemligForm = (props: PropsType) => {
             label="Password"
             type="password"
             control={Input}
-            onChange={handleChange}
+            onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+              store.setNemligPassword(event.target.value);
+            }}
             name="pwd"
             required
           />

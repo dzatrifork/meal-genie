@@ -1,12 +1,9 @@
 import { Button, Form, Placeholder, Table } from "semantic-ui-react";
-import { NemligResult } from "../pages/api/nemlig";
+import { useMealPlanStore } from "../lib/store";
 
-
-export default function NemligTable(props: {
-  nemligResult: NemligResult;
-  nemligLoading: boolean;
-}) {
-  if (props.nemligLoading) {
+export default function NemligTable() {
+  const { nemligLoading, nemligOrder } = useMealPlanStore();
+  if (nemligLoading) {
     return (
       <Placeholder>
         <Placeholder.Header>
@@ -22,14 +19,17 @@ export default function NemligTable(props: {
       </Placeholder>
     );
   }
+  if (nemligOrder == null) {
+    return <div></div>;
+  }
   return (
     <div>
       <Table celled striped>
         <Table.Header>
           <Table.Row>
             <Table.HeaderCell colSpan="2">
-              Antal produkter: {props.nemligResult.itemsInBasket}, Total pris:{" "}
-              {props.nemligResult.totalPrice} kr.
+              Antal produkter: {nemligOrder.itemsInBasket}, Total pris:{" "}
+              {nemligOrder.totalPrice} kr.
               <Form action="https://www.nemlig.com/basket">
                 <Form.Field control={Button}>
                   Nemlig<i>buy</i>!
@@ -39,7 +39,7 @@ export default function NemligTable(props: {
           </Table.Row>
         </Table.Header>
         <Table.Body>
-          {props.nemligResult.products.map((ing) => (
+          {nemligOrder.products.map((ing) => (
             <Table.Row key={ing.id} warning={ing.id === ""}>
               <Table.Cell>{ing.gptName}</Table.Cell>
               <Table.Cell>

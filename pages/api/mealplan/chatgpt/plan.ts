@@ -10,7 +10,7 @@ export type MealResult = {
   directions: string[];
 };
 
-export type DayResult = {  
+export type DayResult = {
   day: string;
   meals: MealResult[];
 };
@@ -52,11 +52,7 @@ async function getPlan(req: PlanRequest, openaiApiKey: string) {
   });
   const openai = new OpenAIApi(configuration);
 
-  return await createGPT35Completion(
-    body,
-    openai,
-    body.model ?? "gpt-3.5-turbo"
-  );
+  return await createGPT35Completion(body, openai, body.model);
 }
 
 async function createGPT35Completion(
@@ -81,7 +77,6 @@ async function createGPT35Completion(
           model: model,
           messages: planMessages,
           temperature: 0.2,
-          max_tokens: model === "gpt-4" ? 5000 : 2048, // The token count of your prompt plus max_tokens cannot exceed the model's context length. Most models have a context length of 2048 tokens (except for the newest models, which support 4096).
         },
         { timeout: 180000 }
       )

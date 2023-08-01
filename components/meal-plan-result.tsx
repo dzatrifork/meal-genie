@@ -12,15 +12,14 @@ import {
   Placeholder,
   Table,
 } from "semantic-ui-react";
+import { useMealPlanStore } from "../lib/store";
 import useIsMobile from "../lib/useIsMobile";
-import { GptResult, Meal } from "./meal-genie-form";
 import NewlineText from "./newline-text";
+import { Meal, Plan } from "../lib/mealPlanSchema";
 
-export default function MealPlanResult(props: {
-  result: GptResult | null;
-  loading: boolean;
-}) {
-  if (props.result == null) {
+export default function MealPlanResult() {
+  const store = useMealPlanStore();
+  if (store.plan == null) {
     return <></>;
   }
 
@@ -28,7 +27,7 @@ export default function MealPlanResult(props: {
     <Card fluid>
       <Card.Content extra>
         <Container className="u-p-15">
-          <Result result={props.result} loading={props.loading}></Result>
+          <Result result={store.plan} loading={store.loading}></Result>
         </Container>
       </Card.Content>
     </Card>
@@ -86,7 +85,7 @@ function DayResult(props: { meal: Meal }) {
   );
 }
 
-function Result(props: { result: GptResult | null; loading: boolean }) {
+function Result(props: { result: Plan | null; loading: boolean }) {
   return (
     <Item.Group>
       <Divider horizontal>
@@ -141,13 +140,13 @@ function Result(props: { result: GptResult | null; loading: boolean }) {
         <Header>Indkøbsliste</Header>
       </Divider>
 
-      {props.result?.ingredients?.map != null ? (
+      {props.result?.allIngredients?.map != null ? (
         <Item>
           <Item.Content>
             <Item.Description>
               <Table celled striped>
                 <Table.Body>
-                  {props.result.ingredients.map((ing, index) => (
+                  {props.result.allIngredients.map((ing, index) => (
                     <Table.Row key={index}>
                       <Table.Cell>
                         {ing.name[0].toUpperCase() + ing.name.slice(1)}

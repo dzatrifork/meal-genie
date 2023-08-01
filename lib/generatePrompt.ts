@@ -13,7 +13,7 @@ export type MealPlanParams = {
     value?: string;
     days?: number;
   }[];
-  model: string;
+  model: 'gpt-3.5-turbo-16k' | 'gpt-4';
 };
 
 const prompt =
@@ -28,6 +28,16 @@ export function getMealPlanPrompt(body: MealPlanParams) {
     .replace("{ingredients}", getIngredientPreferences(body))
     .replace("{types}", getTypesPreferences(body));
   return customPrompt;
+}
+
+export function getContextPrompts(body: MealPlanParams) {
+  if (body.ingredients.length === 0 && body.types.length === 0 && body.preferences == null) {
+    getMealPlanPrompt(body);
+  }
+  const ingredientPrompts = body.ingredients.map(ingredient => `${body.preferences ?? ''}, ${ingredient.value}`);
+  const cuisinePrompts = body.types.map(type => `${body.preferences ?? ''}, ${type.value}`);
+  const preferencesPrompt = body.preferences ? [body.preferences] : [];
+  return ingredientPrompts.concat(cuisinePrompts).concat(preferencesPrompt);
 }
 
 function getMeals(params: MealPlanParams): string {
@@ -64,7 +74,7 @@ function getIngredientPreferences(params: MealPlanParams): string {
 
   const i = params.ingredients.map(
     (v) =>
-      `The mealplan must include ${v.value} for ${v.days} ${(v.days ?? 0) > 1 ? 'days': 'day'}. `
+      `The mealplan must include ${v.value} for ${v.days} ${(v.days ?? 0) > 1 ? 'days': 'day'}`
   );
 
   return i.join(". ") + ". ";

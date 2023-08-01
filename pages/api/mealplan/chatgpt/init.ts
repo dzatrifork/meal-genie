@@ -5,12 +5,14 @@ import {
   Configuration,
   CreateChatCompletionResponse,
   OpenAIApi,
-} from "openai";
+} from "openai-edge";
 import {
+  getContextPrompts,
   getMealPlanPrompt,
   MealPlanParams,
 } from "../../../../lib/generatePrompt";
 import { sessionOptions } from "../../../../lib/session";
+import { Metadata, getContext } from "../../../../utils/context";
 
 export type InitResult = {
   planStr: string;
@@ -41,19 +43,41 @@ async function handler(req: InitRequest, res: NextApiResponse) {
 async function GetMealPlan(req: InitRequest, openaiApiKey: string) {
   const body = req.body;
   console.log(body);
-  
-  const systemPrompt = "You are a kitchen chef. You describe recipes in great detail. You specify each ingredient individually. You only include the results in your answer."
-  console.log(systemPrompt);
 
   var customPrompt = getMealPlanPrompt(body);
   console.log(customPrompt);
+
+  const contextPrompts = getContextPrompts(body);
+  const contexts = await Promise.all(
+    contextPrompts.map((p) => getContext(p, 5))
+  );
+  const contextStr = contexts
+    .map((cs) =>
+      getRandomElements(cs, 2)
+        .map((c) => c.text.split("## Tags")[0])
+        .filter((value, index, self) => self.indexOf(value) === index)
+        .join("")
+    )
+    .join("");
+
+  const systemPrompt = `You are a kitchen chef. You describe recipes in great detail. You specify each ingredient individually.
+  START CONTEXT BLOCK
+  ${contextStr}
+  END OF CONTEXT BLOCK
+  Take into account any CONTEXT BLOCK that is provided. `;
+  console.log(systemPrompt);
 
   const configuration = new Configuration({
     apiKey: openaiApiKey,
   });
   const openai = new OpenAIApi(configuration);
 
-  return await createGPT35Completion(customPrompt, systemPrompt, openai, body.model ?? "gpt-3.5-turbo");
+  return await createGPT35Completion(
+    customPrompt,
+    systemPrompt,
+    openai,
+    body.model
+  );
 }
 
 async function createGPT35Completion(
@@ -67,21 +91,23 @@ async function createGPT35Completion(
     { role: "user", content: customPrompt },
   ];
   const completions = [];
-  const mealPlan = await openai.createChatCompletion({
+  const result = await openai.createChatCompletion({
     model: model,
     messages: messages,
     temperature: 1,
-    max_tokens: model === "gpt-4" ? 6000 : 2048, // The token count of your prompt plus max_tokens cannot exceed the model's context length. Most models have a context length of 2048 tokens (except for the newest models, which support 4096).
   });
+
+  const mealPlan = await result.json();
+  console.log(mealPlan);
 
   completions.push(mealPlan.data);
 
-  if (mealPlan.data.choices[0].message?.content != null) {
-    const planStr = mealPlan.data.choices[0].message?.content;
-    console.log(mealPlan.data.choices[0].message?.content);
+  if (mealPlan.choices[0].message?.content != null) {
+    const planStr = mealPlan.choices[0].message?.content;
+    console.log(mealPlan.choices[0].message?.content);
     messages.push({
       role: "assistant",
-      content: mealPlan.data.choices[0].message?.content,
+      content: mealPlan.choices[0].message?.content,
     });
 
     return {
@@ -92,6 +118,22 @@ async function createGPT35Completion(
   }
 
   throw Error("Failed to create completion");
+}
+
+function getRandomElements<T>(array: T[], numberOfElements: number): T[] {
+  if (numberOfElements > array.length) {
+    throw new Error(
+      "Number of elements requested is greater than the array length."
+    );
+  }
+
+  const shuffledArray = array.slice(); // Create a copy of the original array
+  for (let i = shuffledArray.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffledArray[i], shuffledArray[j]] = [shuffledArray[j], shuffledArray[i]];
+  }
+
+  return shuffledArray.slice(0, numberOfElements);
 }
 
 export default withIronSessionApiRoute(handler, sessionOptions);

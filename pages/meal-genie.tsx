@@ -1,6 +1,5 @@
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
 import {
   Card,
   Dropdown,
@@ -11,20 +10,16 @@ import {
   Message,
 } from "semantic-ui-react";
 import Layout from "../components/layout";
-import MealGenieForm, { GptResult } from "../components/meal-genie-form";
+import MealGenieForm from "../components/meal-genie-form";
 import MealPlanResult from "../components/meal-plan-result";
 import NemligForm from "../components/nemlig-form";
 import NemligTable from "../components/nemlig-table";
-import useUser from "../lib/useUser";
-import { NemligResult } from "./api/nemlig";
+import { useMealPlanStore } from "../lib/store";
 import useIsMobile from "../lib/useIsMobile";
+import useUser from "../lib/useUser";
 
 export default function MealGenie() {
-  const [result, setResult] = useState<GptResult | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [nemligResult, setNemligResult] = useState<NemligResult | null>(null);
-  const [nemligLoading, setNemligloading] = useState<boolean>(false);
-  const [model, setModel] = useState<string>("gpt-4");
+  const store = useMealPlanStore();
 
   useUser({ redirectTo: "/login" });
   const isMobile = useIsMobile();
@@ -47,24 +42,16 @@ export default function MealGenie() {
           }>
             <Dropdown.Menu>
               <Dropdown.Item
-                onClick={() => setModel("gpt-4")}
-                active={model === "gpt-4"}
+                onClick={() => store.setModel("gpt-4")}
+                active={store.model === "gpt-4"}
               >
-                GPT-4 <Label color="blue">gpt-4-8k</Label>
+                GPT-4 <Label color="blue">gpt-4-32k</Label>
               </Dropdown.Item>
               <Dropdown.Item
-                onClick={() => setModel("gpt-3.5-turbo")}
-                active={model === "gpt-3.5-turbo"}
+                onClick={() => store.setModel("gpt-3.5-turbo-16k")}
+                active={store.model === "gpt-3.5-turbo-16k"}
               >
-                ChatGPT <Label color="blue">gpt-3.5-turbo</Label>
-              </Dropdown.Item>
-
-              <Dropdown.Item
-                onClick={() => setModel("davinci")}
-                active={model === "davinci"}
-                disabled
-              >
-                InstructGPT <Label color="blue">davinci</Label>
+                GPT-3.5 <Label color="blue">gpt-3.5-turbo-16k</Label>
               </Dropdown.Item>
             </Dropdown.Menu>
           </Dropdown>
@@ -79,13 +66,9 @@ export default function MealGenie() {
               <Card.Content>
                 <Card.Header>Definer din madplan!</Card.Header>
               </Card.Content>
-              <MealGenieForm
-                model={model}
-                result={setResult}
-                loading={setLoading}
-              ></MealGenieForm>
+              <MealGenieForm></MealGenieForm>
             </Card>
-            <MealPlanResult result={result} loading={loading}></MealPlanResult>
+            <MealPlanResult></MealPlanResult>
           </Grid.Column>
           <Grid.Column width={isMobile ? 16 : 5}>
             <Card fluid>
@@ -101,12 +84,8 @@ export default function MealGenie() {
                   ></Image>
                 </Header>
               </Card.Content>
-              {result?.ingredients != null ? (
-                <NemligForm
-                  mealPlan={result}
-                  nemligResult={setNemligResult}
-                  nemLigloading={setNemligloading}
-                ></NemligForm>
+              {store.ingredients != null ? (
+                <NemligForm></NemligForm>
               ) : (
                 <Card.Content>
                   <Message warning>
@@ -118,11 +97,8 @@ export default function MealGenie() {
                   </Message>
                 </Card.Content>
               )}
-              {nemligResult != null ? (
-                <NemligTable
-                  nemligResult={nemligResult}
-                  nemligLoading={nemligLoading}
-                ></NemligTable>
+              {store.nemligOrder != null ? (
+                <NemligTable></NemligTable>
               ) : (
                 <></>
               )}

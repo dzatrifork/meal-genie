@@ -1,9 +1,8 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   Button,
   Card,
   Checkbox,
-  CheckboxProps,
   Divider,
   DropdownProps,
   Form,
@@ -11,273 +10,165 @@ import {
   Icon,
   Input,
 } from "semantic-ui-react";
-import { InitResult } from "../pages/api/mealplan/chatgpt/init";
-import { DavinciResult } from "../pages/api/mealplan/instructgpt/davinci";
-
-export type Values = {
-  days?: number;
-  persons?: number;
-  breakfast: boolean;
-  lunch: boolean;
-  dinner: boolean;
-  preferences?: string;
-  ingredients: {
-    value?: string;
-    days?: number;
-  }[];
-  types: {
-    value?: string;
-    days?: number;
-  }[];
-};
+import { useMealPlanStore } from "../lib/store";
 
 const ingredientOptions = [
-  { key: "spaghetti", text: "Spaghetti", value: "spaghetti" },
-  { key: "egg", text: "Æg", value: "egg" },
-  { key: "rice", text: "Ris", value: "rice" },
-  { key: "tomato", text: "Tomat", value: "tomato" },
-  { key: "curry", text: "Karry", value: "curry" },
+  { key: 0, value: "tortellini", text: "Tortellini" },
+  { key: 1, value: "pasta", text: "Pasta" },
+  { key: 2, value: "tomato", text: "Tomat" },
+  { key: 3, value: "egg", text: "Æg" },
+  { key: 4, value: "curry", text: "Karry" },
+  { key: 5, value: "rice", text: "Ris" },
+  { key: 6, value: "potato", text: "Kartoffel" },
+  { key: 7, value: "onion", text: "Løg" },
+  { key: 8, value: "garlic", text: "Hvidløg" },
+  { key: 9, value: "chicken", text: "Kylling" },
+  { key: 10, value: "beef", text: "Oksekød" },
+  { key: 11, value: "pork", text: "Svinekød" },
+  { key: 12, value: "fish", text: "Fisk" },
+  { key: 13, value: "shrimp", text: "Rejer" },
+  { key: 14, value: "beans", text: "Bønner" },
+  { key: 15, value: "cheese", text: "Ost" },
+  { key: 16, value: "bread", text: "Brød" },
+  { key: 17, value: "butter", text: "Smør" },
+  { key: 18, value: "oil", text: "Olie" },
+  { key: 19, value: "vinegar", text: "Eddike" },
+  { key: 20, value: "salt", text: "Salt" },
+  { key: 21, value: "pepper", text: "Peber" },
+  { key: 22, value: "sugar", text: "Sukker" },
+  { key: 23, value: "flour", text: "Mel" },
+  { key: 24, value: "milk", text: "Mælk" },
+  { key: 25, value: "cream", text: "Fløde" },
+  { key: 26, value: "yogurt", text: "Yoghurt" },
+  { key: 27, value: "lemon", text: "Citron" },
+  { key: 28, value: "lime", text: "Lime" },
+  { key: 29, value: "orange", text: "Appelsin" },
+  { key: 30, value: "apple", text: "Æble" },
+  { key: 31, value: "banana", text: "Banan" },
+  { key: 32, value: "strawberry", text: "Jordbær" },
+  { key: 33, value: "blueberry", text: "Blåbær" },
+  { key: 34, value: "raspberry", text: "Hindbær" },
+  { key: 35, value: "blackberry", text: "Brombær" },
+  { key: 36, value: "avocado", text: "Avocado" },
+  { key: 37, value: "lettuce", text: "Salat" },
+  { key: 38, value: "spinach", text: "Spinat" },
+  { key: 39, value: "kale", text: "Grønkål" },
+  { key: 40, value: "carrot", text: "Gulerod" },
+  { key: 41, value: "celery", text: "Selleri" },
+  { key: 42, value: "cucumber", text: "Agurk" },
+  { key: 43, value: "bell pepper", text: "Peberfrugt" },
+  { key: 44, value: "chili pepper", text: "Chilipeber" },
+  { key: 45, value: "mushroom", text: "Champignon" },
+  { key: 46, value: "corn", text: "Majs" },
+  { key: 47, value: "peas", text: "Ærter" },
+  { key: 48, value: "broccoli", text: "Broccoli" },
+  { key: 49, value: "cauliflower", text: "Blomkål" },
+  { key: 50, value: "zucchini", text: "Zucchini" },
+  { key: 51, value: "eggplant", text: "Aubergine" },
+  { key: 52, value: "pumpkin", text: "Græskar" },
+  { key: 53, value: "sweet potato", text: "Søde kartoffel" },
+  { key: 54, value: "soy sauce", text: "Sojasovs" },
+  { key: 55, value: "hoisin sauce", text: "Hoisin sauce" },
+  { key: 56, value: "fish sauce", text: "Fiskesovs" },
+  { key: 57, value: "soybean oil", text: "Sojabønneolie" },
+  { key: 58, value: "sesame oil", text: "Sesamolie" },
+  { key: 59, value: "peanut oil", text: "Jordnøddeolie" },
+  { key: 60, value: "mustard", text: "Sennep" },
+  { key: 61, value: "mayonnaise", text: "Mayonnaise" },
+  { key: 62, value: "ketchup", text: "Ketchup" },
+  { key: 63, value: "hot sauce", text: "Chilisauce" },
+  { key: 64, value: "bbq sauce", text: "BBQ-sauce" },
+  { key: 65, value: "honey", text: "Honning" },
+  { key: 66, value: "maple syrup", text: "Ahornsirup" },
+  { key: 67, value: "cinnamon", text: "Kanel" },
+  { key: 68, value: "nutmeg", text: "Muskatnød" },
+  { key: 69, value: "ginger", text: "Ingefær" },
+  { key: 70, value: "vanilla extract", text: "Vaniljeekstrakt" },
+  { key: 71, value: "lemongrass", text: "Citrongræs" },
+  { key: 72, value: "galangal", text: "Galanga" },
+  { key: 73, value: "kaffir lime leaves", text: "Kaffir limeblade" },
+  { key: 74, value: "Thai basil", text: "Thailandsk basilikum" },
+  { key: 75, value: "fish sauce", text: "Fiskesauce" },
+  { key: 76, value: "coconut milk", text: "Kokosmælk" },
+  { key: 77, value: "palm sugar", text: "Palme sukker" },
+  { key: 78, value: "tamarind paste", text: "Tamarind pasta" },
+  { key: 79, value: "curry paste", text: "Karrypasta" },
+  { key: 80, value: "rice noodles", text: "Risnudler" },
+  { key: 81, value: "turmeric", text: "Gurkemeje" },
+  { key: 82, value: "cumin", text: "Spidskommen" },
+  { key: 83, value: "coriander", text: "Koriander" },
+  { key: 84, value: "garam masala", text: "Garam masala" },
+  { key: 85, value: "cardamom", text: "Kardemomme" },
+  { key: 86, value: "fenugreek", text: "Bukkehornsfrø" },
+  { key: 87, value: "mustard seeds", text: "Sennepsfrø" },
+  { key: 88, value: "curry leaves", text: "Karryblade" },
+  { key: 89, value: "coconut milk", text: "Kokosmælk" },
+  { key: 90, value: "ghee", text: "Ghee" },
+  { key: 91, value: "avocado", text: "Avocado" },
+  { key: 92, value: "tomatoes", text: "Tomater" },
+  { key: 93, value: "onion", text: "Løg" },
+  { key: 94, value: "garlic", text: "Hvidløg" },
+  { key: 95, value: "jalapeno peppers", text: "Jalapeno peber" },
+  { key: 96, value: "cilantro", text: "Koriander" },
+  { key: 97, value: "limes", text: "Lime" },
+  { key: 98, value: "black beans", text: "Sorte bønner" },
+  { key: 99, value: "corn tortillas", text: "Majstortillas" },
+  { key: 100, value: "queso fresco", text: "Queso fresco" },
 ];
 
 const typeOptions = [
-  { key: "1", text: "Thai", value: "thai food" },
-  { key: "2", text: "Italiansk", value: "italian food" },
-  { key: "3", text: "Fransk", value: "french food" },
-  { key: "4", text: "Simremad", value: "simmer food" },
-  { key: "5", text: "Fancy", value: "fancy food" },
+  { key: 0, value: "fancy food", text: "Fancy" },
+  { key: 1, value: "american", text: "Amerikansk" },
+  { key: 2, value: "chinese", text: "Kinesisk" },
+  { key: 3, value: "french", text: "Fransk" },
+  { key: 4, value: "indian", text: "Indisk" },
+  { key: 5, value: "italian", text: "Italiensk" },
+  { key: 6, value: "japanese", text: "Japansk" },
+  { key: 7, value: "korean", text: "Koreansk" },
+  { key: 8, value: "mexican", text: "Mexicansk" },
+  { key: 9, value: "thai", text: "Thailandsk" },
+  { key: 10, value: "vietnamese", text: "Vietnamesisk" },
+  { key: 11, value: "mediterranean", text: "Middelhavskøkkenet" },
+  { key: 12, value: "middle eastern", text: "Mellemøstlig" },
+  { key: 13, value: "spanish", text: "Spansk" },
+  { key: 14, value: "indonesian", text: "Indonesisk" },
+  { key: 15, value: "greek", text: "Græsk" },
+  { key: 16, value: "cajun", text: "Cajun" },
+  { key: 17, value: "caribbean", text: "Caribisk" },
+  { key: 18, value: "african", text: "Afrikansk" },
+  { key: 19, value: "brazilian", text: "Brasiliansk" },
+  { key: 20, value: "peruvian", text: "Peruviansk" },
+  { key: 21, value: "argentinian", text: "Argentinsk" },
 ];
 
-export type Meal =  {
-  description: string;
-  ingredients?: { name: string; quantity: number; unit: string }[];
-  directions?: string[];
-};
-
-export type Day = {
-  day: string;
-  meals: Meal[];
-};
-
-export type GptResult = {
-  planStr?: string;
-  plan?: Day[];
-  ingredients?: {
-    name: string;
-    quantity: string;
-    unit: string;
-  }[];
-};
-
-export interface PropsType {
-  result: (result: GptResult | null) => void;
-  loading: (result: boolean) => void;
-  model: string;
-}
-
-export interface RefType {
-  result: GptResult | null;
-}
-
-const fetcher = (url: string, body: string) =>
-  fetch(url, {
-    method: "POST",
-    body: body,
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    },
-  }).then((res) => res.json());
-
-const MealGenieForm = (props: PropsType) => {
-  const [loading, setLoading] = useState<boolean>(false);
-  const [values, setValues] = useState<Values>({
-    days: 5,
-    persons: 2,
-    breakfast: false,
-    lunch: false,
-    dinner: true,
-    preferences: undefined,
-    ingredients: [],
-    types: [],
-  });
+const MealGenieForm = () => {
+  const store = useMealPlanStore();
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    setLoading(true);
-    props.loading(true);
-    props.result(null);
     event.preventDefault();
-    if (values.days == null || values.persons == null) {
-      setLoading(false);
-      return;
-    }
-
-    const body = {
-      days: values.days,
-      persons: values.persons,
-      breakfast: values.breakfast,
-      lunch: values.lunch,
-      dinner: values.dinner,
-      preferences: values.preferences,
-      ingredients: values.ingredients,
-      types: values.types,
-      model: props.model,
-    };
-    const init: InitResult = await fetcher(
-      "/api/mealplan/chatgpt/init",
-      JSON.stringify(body)
-    ).catch((e: Error) => e);
-
-    let result: GptResult | null = {
-      planStr: init.planStr,
-    };
-    props.result(result);
-
-    const ingredients = fetcher(
-      "/api/mealplan/chatgpt/ingredients",
-      JSON.stringify({
-        messages: init.messages,
-        model: props.model,
-      })
-    )
-      .then((res) => {
-        result = {
-          ...result,
-          ingredients: res.ingredients,
-        };
-        props.result(result);
-      })
-      .catch((e: Error) => {
-        console.log(e);
-        return null;
-      });
-
-    const plan = fetcher(
-      "/api/mealplan/chatgpt/plan",
-      JSON.stringify({
-        messages: init.messages,
-        days: values.days,
-      })
-    )
-      .then((res) => {
-        result = {
-          ...result,
-          plan: res.plan,
-          planStr: res.planStr,
-        };
-        props.result(result);
-      })
-      .catch((e: Error) => {
-        console.log(e);
-        return null;
-      });
-
-    await Promise.all([ingredients, plan]);
-    console.log(result);
-
-    if (result != null) {
-      props.result(result);
-    }
-    props.loading(false);
-    setLoading(false);
-  };
-
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setValues({ ...values, [event.target.name]: event.target.value });
-  };
-
-  const handleChangeNum = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setValues({ ...values, [event.target.name]: Number(event.target.value) });
+    store.submitChatGpt();
   };
 
   const handleChangeIngredientValue = (data: DropdownProps, index: number) => {
-    const ingredients = values.ingredients;
-    const ingredient = ingredients[index];
-    ingredient.value = data.value as string;
-    ingredients[index] = ingredient;
-    setValues({ ...values, ingredients: ingredients });
-    console.log(values.ingredients);
+    store.changeIngredientValue(data.value as string, index);
   };
 
   const handleChangeIngredientDays = (
     event: React.ChangeEvent<HTMLInputElement>,
     index: number
   ) => {
-    const ingredients = values.ingredients;
-    const ingredient = ingredients[index];
-    ingredient.days = Number(event.target.value);
-    ingredients[index] = ingredient;
-    setValues({ ...values, ingredients: ingredients });
-    console.log(values.ingredients);
-  };
-
-  const handleDeleteIngredient = (index: number) => {
-    const ingredients = values.ingredients;
-    ingredients.splice(index, 1);
-    console.log(ingredients);
-    setValues({ ...values, ingredients: ingredients });
-  };
-
-  const handleAddIngredient = () => {
-    const ingredients = values.ingredients;
-    ingredients.push({ value: undefined, days: undefined });
-    console.log(ingredients);
-    setValues({ ...values, ingredients: ingredients });
+    store.changeIngredientDays(Number(event.target.value), index);
   };
 
   const handleChangeTypeValue = (data: DropdownProps, index: number) => {
-    const types = values.types;
-    const type = types[index];
-    type.value = data.value as string;
-    types[index] = type;
-    setValues({ ...values, types: types });
-    console.log(values.types);
+    store.changeMealTypeValue(data.value as string, index);
   };
 
   const handleChangeTypeDays = (
     event: React.ChangeEvent<HTMLInputElement>,
     index: number
   ) => {
-    const types = values.types;
-    const type = types[index];
-    type.days = Number(event.target.value);
-    types[index] = type;
-    setValues({ ...values, types: types });
-    console.log(values.types);
-  };
-
-  const handleDeleteType = (index: number) => {
-    const types = values.types;
-    types.splice(index, 1);
-    console.log(types);
-    setValues({ ...values, types: types });
-  };
-
-  const handleAddType = () => {
-    const types = values.types;
-    types.push({ value: undefined, days: undefined });
-    console.log(types);
-    setValues({ ...values, types: types });
-  };
-
-  const handleChangeCheckbox = (
-    event: React.FormEvent<HTMLInputElement>,
-    data: CheckboxProps
-  ) => {
-    if (data.name != null) {
-      console.log(data);
-      console.log(event);
-      setValues({ ...values, [data.name]: data.checked });
-    }
-  };
-  const handleChangeRadio = (
-    event: React.FormEvent<HTMLInputElement>,
-    data: CheckboxProps
-  ) => {
-    if (data.name != null) {
-      console.log(data);
-      console.log(event);
-      setValues({ ...values, [data.name]: data.value });
-    }
+    store.changeMealTypeDays(Number(event.target.value), index);
   };
 
   return (
@@ -289,21 +180,25 @@ const MealGenieForm = (props: PropsType) => {
               label="Dage"
               type="number"
               control={Input}
-              value={values.days}
-              onChange={handleChangeNum}
+              value={store.days}
+              onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                store.setDays(Number(event.target.value));
+              }}
               name="days"
               required
-              disabled={loading}
+              disabled={store.loading}
             />
             <Form.Field
               label="Personer"
               type="number"
               control={Input}
-              value={values.persons}
-              onChange={handleChangeNum}
+              value={store.persons}
+              onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                store.setPersons(Number(event.target.value));
+              }}
               name="persons"
               required
-              disabled={loading}
+              disabled={store.loading}
             />
           </Form.Group>
           <Form.Group inline>
@@ -311,64 +206,62 @@ const MealGenieForm = (props: PropsType) => {
             <Form.Checkbox
               label="Morgen"
               control={Checkbox}
-              checked={values.breakfast}
-              onChange={handleChangeCheckbox}
+              checked={store.breakfast}
+              onClick={store.toggleBreakfast}
               name="breakfast"
-              disabled={loading}
+              disabled={store.loading}
             />
             <Form.Checkbox
               label="Middag"
               control={Checkbox}
-              checked={values.lunch}
-              onChange={handleChangeCheckbox}
+              checked={store.lunch}
+              onClick={store.toggleLunch}
               name="lunch"
-              disabled={loading}
+              disabled={store.loading}
             />
             <Form.Checkbox
               label="Aften"
               control={Checkbox}
-              checked={values.dinner}
-              onChange={handleChangeCheckbox}
+              checked={store.dinner}
+              onClick={store.toggleDinner}
               name="dinner"
-              disabled={loading}
+              disabled={store.loading}
             />
           </Form.Group>
           <Form.Group inline>
             <label>Særlige kostpræferencer?</label>
             <Form.Radio
               label="Ingen"
-              checked={values.preferences == null}
-              value={undefined}
-              onChange={handleChangeRadio}
+              checked={store.preferences == null}
+              onClick={() => store.setPreferences(undefined)}
               name="preferences"
-              disabled={loading}
+              disabled={store.loading}
             />
             <Form.Radio
               label="Vegetar"
-              checked={values.preferences === "vegetarian"}
-              value="vegetarian"
-              onChange={handleChangeRadio}
+              checked={store.preferences === "vegetarian"}
+              onClick={() => store.setPreferences("vegetarian")}
               name="preferences"
-              disabled={loading}
+              disabled={store.loading}
             />
             <Form.Radio
               label="Veganer"
-              checked={values.preferences === "vegan"}
+              checked={store.preferences === "vegan"}
               value="vegan"
-              onChange={handleChangeRadio}
+              onClick={() => store.setPreferences("vegan")}
               name="preferences"
-              disabled={loading}
+              disabled={store.loading}
             />
           </Form.Group>
           <Divider></Divider>
           <Button
-            onClick={() => handleAddIngredient()}
+            onClick={store.addIngredient}
             color="blue"
-            disabled={loading}
+            disabled={store.loading}
           >
             <Icon name="plus"></Icon> Tilføj ingrediens
           </Button>
-          {values.ingredients.length > 0 ? (
+          {store.ingredients.length > 0 ? (
             <Header
               as="h6"
               content="Jeg vil gerne have INGREDIENS i mindst DAGE"
@@ -376,7 +269,7 @@ const MealGenieForm = (props: PropsType) => {
           ) : (
             <></>
           )}
-          {values.ingredients.map((ingredient, index) => (
+          {store.ingredients.map((ingredient, index) => (
             <>
               <Divider hidden></Divider>
               <Form.Group widths={2}>
@@ -384,15 +277,16 @@ const MealGenieForm = (props: PropsType) => {
                   fluid
                   label="Ingrediens"
                   options={ingredientOptions}
+                  value={ingredient.value}
                   onChange={(_: any, props: DropdownProps) =>
                     handleChangeIngredientValue(props, index)
                   }
                   name="value"
                   required
-                  disabled={loading}
+                  disabled={store.loading}
                 />
                 <Form.Field
-                  error={(ingredient.days ?? 0) > (values.days ?? 0)}
+                  error={(ingredient.days ?? 0) > (store.days ?? 0)}
                   fluid
                   label="Dage"
                   type="number"
@@ -404,27 +298,27 @@ const MealGenieForm = (props: PropsType) => {
                   ) => handleChangeIngredientDays(event, index)}
                   name="days"
                   required
-                  disabled={loading}
+                  disabled={store.loading}
                 />
                 <Button
                   className="delete-btn"
                   icon="x"
                   compact
-                  onClick={() => handleDeleteIngredient(index)}
-                  disabled={loading}
+                  onClick={() => store.deleteIngredient(index)}
+                  disabled={store.loading}
                 ></Button>
               </Form.Group>
             </>
           ))}
           <Divider></Divider>
           <Button
-            onClick={() => handleAddType()}
+            onClick={store.addMealType}
             color="blue"
-            disabled={loading}
+            disabled={store.loading}
           >
             <Icon name="plus"></Icon>Tilføj Type
           </Button>
-          {values.types.length > 0 ? (
+          {store.types.length > 0 ? (
             <Header
               as="h6"
               content="Jeg vil gerne have DAGE har TYPE ret"
@@ -432,7 +326,7 @@ const MealGenieForm = (props: PropsType) => {
           ) : (
             <></>
           )}
-          {values.types.map((type, index) => (
+          {store.types.map((type, index) => (
             <>
               <Divider hidden></Divider>
               <Form.Group widths={2}>
@@ -440,12 +334,13 @@ const MealGenieForm = (props: PropsType) => {
                   fluid
                   label="Type"
                   options={typeOptions}
+                  value={type.value}
                   onChange={(_: any, props: DropdownProps) =>
                     handleChangeTypeValue(props, index)
                   }
                   name="value"
                   required
-                  disabled={loading}
+                  disabled={store.loading}
                 />
                 <Form.Field
                   fluid
@@ -459,14 +354,14 @@ const MealGenieForm = (props: PropsType) => {
                   ) => handleChangeTypeDays(event, index)}
                   name="days"
                   required
-                  disabled={loading}
+                  disabled={store.loading}
                 />
                 <Button
                   className="delete-btn"
                   icon="x"
                   compact
-                  onClick={() => handleDeleteType(index)}
-                  disabled={loading}
+                  onClick={() => store.deleteMealType(index)}
+                  disabled={store.loading}
                 ></Button>
               </Form.Group>
             </>
@@ -476,8 +371,8 @@ const MealGenieForm = (props: PropsType) => {
             type="submit"
             control={Button}
             color="blue"
-            loading={loading}
-            disabled={loading}
+            loading={store.loading}
+            disabled={store.loading}
           >
             Opret madplan
           </Form.Field>
