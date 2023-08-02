@@ -32,7 +32,7 @@ export function getMealPlanPrompt(body: MealPlanParams) {
 
 export function getContextPrompts(body: MealPlanParams) {
   if (body.ingredients.length === 0 && body.types.length === 0 && body.preferences == null) {
-    getMealPlanPrompt(body);
+    return [getMealPlanPrompt(body)];
   }
   const ingredientPrompts = body.ingredients.map(ingredient => `${body.preferences ?? ''}, ${ingredient.value}`);
   const cuisinePrompts = body.types.map(type => `${body.preferences ?? ''}, ${type.value}`);

@@ -6,7 +6,12 @@ import { sessionOptions } from "../../../../lib/session";
 
 export type MealResult = {
   description: string;
-  ingredients: string[];
+  ingredients: {
+    displayName: string;
+    item: string;
+    quantity?: number;
+    unit: string;
+  }[];
   directions: string[];
 };
 
@@ -68,18 +73,15 @@ async function createGPT35Completion(
     const planMessages = messages.concat([
       {
         role: "user",
-        content: `Give me steps by step directions for the meal(s) of day ${i}. Your response should be in JSON format {meals: {"description": string, "ingredients": {"name": string, "quantity": number, "unit": string}[], "directions": string[]}[]}. Values should be in danish.`,
+        content: `Give me steps by step directions for the meal(s) of day ${i}. Your response should be in JSON format {meals: {"description": string, "ingredients": {ingredient: string, quantity: number, unit: string}[], "directions": string[]}[]}. Values should be in danish.`,
       },
     ]);
     const dayData = openai
-      .createChatCompletion(
-        {
-          model: model,
-          messages: planMessages,
-          temperature: 0.2,
-        },
-        { timeout: 180000 }
-      )
+      .createChatCompletion({
+        model: model,
+        messages: planMessages,
+        temperature: 0.2,
+      })
       .catch((error) => {
         console.log(error);
         return error;
@@ -89,9 +91,9 @@ async function createGPT35Completion(
 
   const plan = await Promise.all(promises).then((values) => {
     return values.map((value, index) => {
-      console.log(index, value.data.choices[0].message?.content);
       const json = parseJson(value.data.choices[0].message?.content);
       return {
+        gptContent: value.data,
         day: `Dag ${index + 1}`,
         ...json,
       };

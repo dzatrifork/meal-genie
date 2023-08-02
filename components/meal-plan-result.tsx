@@ -152,7 +152,7 @@ function Result(props: { result: Plan | null; loading: boolean }) {
                         {ing.name[0].toUpperCase() + ing.name.slice(1)}
                       </Table.Cell>
                       <Table.Cell>
-                        {ing.quantity} {ing.unit}
+                        {ing.quantity ?? ''} {ing.unit}
                       </Table.Cell>
                     </Table.Row>
                   ))}

@@ -6,8 +6,8 @@ export type Meal = {
 
 export type Ingredient = {
     name: string;
-    quantity: string;
-    unit: string;
+    quantity?: string;
+    unit?: string;
 }
 
 export type Day = {

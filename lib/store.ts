@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
 import { InitResult } from "../pages/api/mealplan/chatgpt/init";
 import { NemligResult } from "../pages/api/nemlig";
 import { Plan } from "./mealPlanSchema";

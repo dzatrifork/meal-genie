@@ -7,12 +7,12 @@ import {
   OpenAIApi,
 } from "openai-edge";
 import {
+  MealPlanParams,
   getContextPrompts,
   getMealPlanPrompt,
-  MealPlanParams,
 } from "../../../../lib/generatePrompt";
 import { sessionOptions } from "../../../../lib/session";
-import { Metadata, getContext } from "../../../../utils/context";
+import { getContext } from "../../../../utils/context";
 
 export type InitResult = {
   planStr: string;
@@ -49,16 +49,20 @@ async function GetMealPlan(req: InitRequest, openaiApiKey: string) {
 
   const contextPrompts = getContextPrompts(body);
   const contexts = await Promise.all(
-    contextPrompts.map((p) => getContext(p, 5))
+    contextPrompts.map((p) => getContext(p, 10))
   );
   const contextStr = contexts
     .map((cs) =>
-      getRandomElements(cs, 2)
+      getRandomElements(
+        cs,
+        numberOfRandomElements(contextPrompts.length, body.days)
+      )
         .map((c) => c.text.split("## Tags")[0])
         .filter((value, index, self) => self.indexOf(value) === index)
         .join("")
     )
-    .join("");
+    .join("")
+    .substring(0, body.model === 'gpt-4' ? 6000 : 10000); 
 
   const systemPrompt = `You are a kitchen chef. You describe recipes in great detail. You specify each ingredient individually.
   START CONTEXT BLOCK
@@ -100,7 +104,7 @@ async function createGPT35Completion(
   const mealPlan = await result.json();
   console.log(mealPlan);
 
-  completions.push(mealPlan.data);
+  completions.push(mealPlan);
 
   if (mealPlan.choices[0].message?.content != null) {
     const planStr = mealPlan.choices[0].message?.content;
@@ -118,6 +122,18 @@ async function createGPT35Completion(
   }
 
   throw Error("Failed to create completion");
+}
+
+function numberOfRandomElements(nrOfCustomPrompts: number, days: number): number {
+  if (nrOfCustomPrompts === 1) {
+    return days;
+  } 
+
+  if ( (nrOfCustomPrompts * 2) >= days && (days * 2) >= (nrOfCustomPrompts * 2)) {
+    return 2;
+  }
+
+  return 1;
 }
 
 function getRandomElements<T>(array: T[], numberOfElements: number): T[] {
