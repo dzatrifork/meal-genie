@@ -2,12 +2,13 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   Card,
+  Checkbox,
   Dropdown,
   Grid,
   Header,
   Label,
   Menu,
-  Message,
+  Message
 } from "semantic-ui-react";
 import Layout from "../components/layout";
 import MealGenieForm from "../components/meal-genie-form";
@@ -28,30 +29,51 @@ export default function MealGenie() {
     <Layout>
       <div className="ui main container">
         <Menu inverted color="blue">
-          <Dropdown item trigger={
-            <>
-            <Image
-            src={"/images/openai_logo.svg"}
-            alt="OpenAI"
-            width={120}
-            height={20}
-            style={{ width: "75px", marginRight: "5px" }}
-          ></Image>{" "}
-          Model
-            </>
-          }>
+          <Dropdown
+            item
+            trigger={
+              <>
+                <Image
+                  src={"/images/openai_logo.svg"}
+                  alt="OpenAI"
+                  width={120}
+                  height={20}
+                  style={{ width: "75px", marginRight: "5px" }}
+                ></Image>{" "}
+                Model
+              </>
+            }
+          >
             <Dropdown.Menu>
               <Dropdown.Item
                 onClick={() => store.setModel("gpt-4")}
                 active={store.model === "gpt-4"}
               >
-                GPT-4 <Label color="blue">gpt-4-32k</Label>
+                GPT-4 <Label color="blue">gpt-4-8k</Label>
               </Dropdown.Item>
               <Dropdown.Item
                 onClick={() => store.setModel("gpt-3.5-turbo-16k")}
                 active={store.model === "gpt-3.5-turbo-16k"}
               >
                 GPT-3.5 <Label color="blue">gpt-3.5-turbo-16k</Label>
+              </Dropdown.Item>
+            </Dropdown.Menu>
+          </Dropdown>
+
+          <Dropdown item trigger={<>Tilføj context fra</>}>
+            <Dropdown.Menu>
+              <Dropdown.Item
+                onClick={() => store.toggleUsePinecone()}
+                active={store.usePinecone}
+              >
+                <Image
+                  src={"/images/kitchen_stories.svg"}
+                  alt="KitchenStories"
+                  width={120}
+                  height={20}
+                  style={{ width: "100px", marginRight: "10px", marginTop: "-3px", color: 'black' }}
+                ></Image>
+                <Checkbox checked={store.usePinecone}></Checkbox>
               </Dropdown.Item>
             </Dropdown.Menu>
           </Dropdown>
@@ -97,11 +119,7 @@ export default function MealGenie() {
                   </Message>
                 </Card.Content>
               )}
-              {store.nemligOrder != null ? (
-                <NemligTable></NemligTable>
-              ) : (
-                <></>
-              )}
+              {store.nemligOrder != null ? <NemligTable></NemligTable> : <></>}
             </Card>
           </Grid.Column>
         </Grid>
