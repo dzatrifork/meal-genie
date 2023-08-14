@@ -73,7 +73,7 @@ async function createGPT35Completion(
     const planMessages = messages.concat([
       {
         role: "user",
-        content: `Give me steps by step directions for the meal(s) of day ${i}. Your response should be in JSON format {meals: {"description": string, "ingredients": {ingredient: string, quantity: number, unit: string}[], "directions": string[]}[]}. Values should be in danish.`,
+        content: `Give me steps by step directions for the meal(s) of day ${i}. Your response should be in JSON format {meals: {"description": string, "ingredients": {name: string, quantity: number, unit: string}[], "directions": string[]}[]}. Values should be in danish.`,
       },
     ]);
     const dayData = openai

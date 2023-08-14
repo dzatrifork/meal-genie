@@ -46,30 +46,32 @@ async function GetMealPlan(req: InitRequest, openaiApiKey: string) {
 
   var customPrompt = getMealPlanPrompt(body);
   console.log(customPrompt);
+  let systemPrompt = `You are a kitchen chef. You describe recipes in great detail. You specify each ingredient individually.`
 
-  const contextPrompts = getContextPrompts(body);
-  const contexts = await Promise.all(
-    contextPrompts.map((p) => getContext(p, 10))
-  );
-  const contextStr = contexts
-    .map((cs) =>
-      getRandomElements(
-        cs,
-        numberOfRandomElements(contextPrompts.length, body.days)
+  if (body.usePinecone) {
+    const contextPrompts = getContextPrompts(body);
+    const contexts = await Promise.all(
+      contextPrompts.map((p) => getContext(p, 10))
+    );
+    const contextStr = contexts
+      .map((cs) =>
+        getRandomElements(
+          cs,
+          numberOfRandomElements(contextPrompts.length, body.days)
+        )
+          .map((c) => c.text.split("## Tags")[0])
+          .filter((value, index, self) => self.indexOf(value) === index)
+          .join("")
       )
-        .map((c) => c.text.split("## Tags")[0])
-        .filter((value, index, self) => self.indexOf(value) === index)
-        .join("")
-    )
-    .join("")
-    .substring(0, body.model === 'gpt-4' ? 6000 : 10000); 
-
-  const systemPrompt = `You are a kitchen chef. You describe recipes in great detail. You specify each ingredient individually.
-  START CONTEXT BLOCK
-  ${contextStr}
-  END OF CONTEXT BLOCK
-  Take into account any CONTEXT BLOCK that is provided. `;
-  console.log(systemPrompt);
+      .join("")
+      .substring(0, body.model === 'gpt-4' ? 6000 : 10000); 
+  
+    systemPrompt += `START CONTEXT BLOCK
+    ${contextStr}
+    END OF CONTEXT BLOCK
+    Take into account any CONTEXT BLOCK that is provided. `;
+  }
+  console.log("SYSTEM PROMPT: ", systemPrompt);
 
   const configuration = new Configuration({
     apiKey: openaiApiKey,

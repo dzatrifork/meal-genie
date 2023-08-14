@@ -14,6 +14,7 @@ export type MealPlanParams = {
     days?: number;
   }[];
   model: 'gpt-3.5-turbo-16k' | 'gpt-4';
+  usePinecone: boolean;
 };
 
 const prompt =

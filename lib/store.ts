@@ -52,6 +52,8 @@ export interface State {
   changeMealTypeDays: (days: number, index: number) => void;
   model: LanguageModel;
   setModel: (model: LanguageModel) => void;
+  usePinecone: boolean;
+  toggleUsePinecone: () => void;
   submitChatGpt: () => void;
   submitTypechat: () => void;
   submitNemlig: () => void;
@@ -162,6 +164,8 @@ export const useMealPlanStore = create<State>()((set, get) => ({
   setModel: (model: LanguageModel) => {
     set((state: State) => ({ ...state, model }));
   },
+  usePinecone: false,
+  toggleUsePinecone: () => set((state: State) => ({...state, usePinecone: !state.usePinecone})),
   submitChatGpt: async () => {
     get().setLoading(true);
     get().setMealPlan(null);
@@ -180,6 +184,7 @@ export const useMealPlanStore = create<State>()((set, get) => ({
       ingredients: get().ingredients,
       types: get().types,
       model: get().model,
+      usePinecone: get().usePinecone,
     };
     const init: InitResult = await fetcher(
       "/api/mealplan/chatgpt/init",
