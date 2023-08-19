@@ -15,7 +15,7 @@ const NemligForm = () => {
       <Card.Content>
         <Form onSubmit={handleSubmit} loading={store.nemligLoading}>
           <Form.Field
-            label="Bruger"
+            label="User"
             type="email"
             control={Input}
             onChange={(event: React.ChangeEvent<HTMLInputElement>) => {

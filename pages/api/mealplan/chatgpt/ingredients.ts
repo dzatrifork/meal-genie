@@ -10,13 +10,14 @@ import { parseJson } from "../../../../lib/parseGptJson";
 import { sessionOptions } from "../../../../lib/session";
 
 const promptGPT3Ingredients =
-  'Summarize all the ingredients for the whole mealplan. Only include each type of ingredient once. Your response should be in JSON format: {ingredients: {name: string, quantity: number, unit: string}[]}. Values should be in danish.';
+  'Summarize all the ingredients for the whole mealplan. Only include each type of ingredient once. Your response should be in JSON format: {ingredients: {name: string, quantity: number, unit: string, danishName: string}[]}';
 
 export type IngredientsResult = {
   ingredients: {
-    ingredient: string;
+    name: string;
     quantity: string;
     unit: string;
+    danishName: string;
   }[];
   gptContent: CreateChatCompletionResponse;
 };

@@ -59,24 +59,6 @@ export default function MealGenie() {
               </Dropdown.Item>
             </Dropdown.Menu>
           </Dropdown>
-
-          <Dropdown item trigger={<>Tilføj context fra</>}>
-            <Dropdown.Menu>
-              <Dropdown.Item
-                onClick={() => store.toggleUsePinecone()}
-                active={store.usePinecone}
-              >
-                <Image
-                  src={"/images/kitchen_stories.svg"}
-                  alt="KitchenStories"
-                  width={120}
-                  height={20}
-                  style={{ width: "100px", marginRight: "10px", marginTop: "-3px", color: 'black' }}
-                ></Image>
-                <Checkbox checked={store.usePinecone}></Checkbox>
-              </Dropdown.Item>
-            </Dropdown.Menu>
-          </Dropdown>
           <Menu.Item position="right">
             {" "}
             <Link href={"https://openai.com/pricing"}>OpenAI Pricing</Link>
@@ -86,7 +68,7 @@ export default function MealGenie() {
           <Grid.Column width={isMobile ? 16 : 11}>
             <Card fluid color="blue" raised>
               <Card.Content>
-                <Card.Header>Definer din madplan!</Card.Header>
+                <Card.Header>Define your meal plan!</Card.Header>
               </Card.Content>
               <MealGenieForm></MealGenieForm>
             </Card>
@@ -96,7 +78,7 @@ export default function MealGenie() {
             <Card fluid>
               <Card.Content>
                 <Header size="small">
-                  Føj indkøbslisten til{" "}
+                  Add shopping list to {" "}
                   <Image
                     id="nemlig-img"
                     src="/images/nemlig-web-logo.svg"
@@ -113,7 +95,7 @@ export default function MealGenie() {
                   <Message warning>
                     <p>
                       {" "}
-                      Tryk på <b>Opret madplan</b> før du kan sende til
+                      Click <b>Generate meal plan</b> before you can send to
                       Nemlig.com
                     </p>
                   </Message>

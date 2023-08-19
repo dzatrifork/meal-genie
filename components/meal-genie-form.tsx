@@ -1,13 +1,12 @@
+import Image from "next/image";
 import React from "react";
 import {
   Button,
   Card,
   Checkbox,
   Divider,
-  DropdownProps,
   Form,
   Header,
-  Icon,
   Input,
 } from "semantic-ui-react";
 import { useMealPlanStore } from "../lib/store";
@@ -149,35 +148,13 @@ const MealGenieForm = () => {
     store.submitChatGpt();
   };
 
-  const handleChangeIngredientValue = (data: DropdownProps, index: number) => {
-    store.changeIngredientValue(data.value as string, index);
-  };
-
-  const handleChangeIngredientDays = (
-    event: React.ChangeEvent<HTMLInputElement>,
-    index: number
-  ) => {
-    store.changeIngredientDays(Number(event.target.value), index);
-  };
-
-  const handleChangeTypeValue = (data: DropdownProps, index: number) => {
-    store.changeMealTypeValue(data.value as string, index);
-  };
-
-  const handleChangeTypeDays = (
-    event: React.ChangeEvent<HTMLInputElement>,
-    index: number
-  ) => {
-    store.changeMealTypeDays(Number(event.target.value), index);
-  };
-
   return (
     <>
       <Card.Content>
         <Form onSubmit={handleSubmit}>
           <Form.Group widths={2}>
             <Form.Field
-              label="Dage"
+              label="Days"
               type="number"
               control={Input}
               value={store.days}
@@ -189,7 +166,7 @@ const MealGenieForm = () => {
               disabled={store.loading}
             />
             <Form.Field
-              label="Personer"
+              label="Individuals"
               type="number"
               control={Input}
               value={store.persons}
@@ -202,9 +179,9 @@ const MealGenieForm = () => {
             />
           </Form.Group>
           <Form.Group inline>
-            <label>Hvilke måltider?</label>
+            <label>Which meals?</label>
             <Form.Checkbox
-              label="Morgen"
+              label="Breakfast"
               control={Checkbox}
               checked={store.breakfast}
               onClick={store.toggleBreakfast}
@@ -212,7 +189,7 @@ const MealGenieForm = () => {
               disabled={store.loading}
             />
             <Form.Checkbox
-              label="Middag"
+              label="Lunch"
               control={Checkbox}
               checked={store.lunch}
               onClick={store.toggleLunch}
@@ -220,7 +197,7 @@ const MealGenieForm = () => {
               disabled={store.loading}
             />
             <Form.Checkbox
-              label="Aften"
+              label="Dinner"
               control={Checkbox}
               checked={store.dinner}
               onClick={store.toggleDinner}
@@ -229,23 +206,23 @@ const MealGenieForm = () => {
             />
           </Form.Group>
           <Form.Group inline>
-            <label>Særlige kostpræferencer?</label>
+            <label>Dietrary preferences?</label>
             <Form.Radio
-              label="Ingen"
+              label="None"
               checked={store.preferences == null}
               onClick={() => store.setPreferences(undefined)}
               name="preferences"
               disabled={store.loading}
             />
             <Form.Radio
-              label="Vegetar"
+              label="Vegetarian"
               checked={store.preferences === "vegetarian"}
               onClick={() => store.setPreferences("vegetarian")}
               name="preferences"
               disabled={store.loading}
             />
             <Form.Radio
-              label="Veganer"
+              label="Vegan"
               checked={store.preferences === "vegan"}
               value="vegan"
               onClick={() => store.setPreferences("vegan")}
@@ -253,120 +230,62 @@ const MealGenieForm = () => {
               disabled={store.loading}
             />
           </Form.Group>
-          <Divider></Divider>
-          <Button
-            onClick={store.addIngredient}
-            color="blue"
+          <Form.Select
+            fluid
+            label="Ingredients to include"
+            options={ingredientOptions.map((ing) => ({
+              ...ing,
+              text: capitalizeFirstLetter(ing.value),
+            }))}
+            value={store.ingredients}
+            onChange={(_, DropdownProps) =>
+              store.setIngredients(DropdownProps.value as string[])
+            }
+            name="value"
+            multiple
             disabled={store.loading}
-          >
-            <Icon name="plus"></Icon> Tilføj ingrediens
-          </Button>
-          {store.ingredients.length > 0 ? (
-            <Header
-              as="h6"
-              content="Jeg vil gerne have INGREDIENS i mindst DAGE"
-            ></Header>
-          ) : (
-            <></>
-          )}
-          {store.ingredients.map((ingredient, index) => (
-            <>
-              <Divider hidden></Divider>
-              <Form.Group widths={2}>
-                <Form.Select
-                  fluid
-                  label="Ingrediens"
-                  options={ingredientOptions}
-                  value={ingredient.value}
-                  onChange={(_: any, props: DropdownProps) =>
-                    handleChangeIngredientValue(props, index)
-                  }
-                  name="value"
-                  required
-                  disabled={store.loading}
-                />
-                <Form.Field
-                  error={(ingredient.days ?? 0) > (store.days ?? 0)}
-                  fluid
-                  label="Dage"
-                  type="number"
-                  control={Input}
-                  value={ingredient.days}
-                  onChange={(
-                    event: React.ChangeEvent<HTMLInputElement>,
-                    props: DropdownProps
-                  ) => handleChangeIngredientDays(event, index)}
-                  name="days"
-                  required
-                  disabled={store.loading}
-                />
-                <Button
-                  className="delete-btn"
-                  icon="x"
-                  compact
-                  onClick={() => store.deleteIngredient(index)}
-                  disabled={store.loading}
-                ></Button>
-              </Form.Group>
-            </>
-          ))}
-          <Divider></Divider>
-          <Button
-            onClick={store.addMealType}
-            color="blue"
+          />
+          <Form.Select
+            fluid
+            label="Cuisines to include"
+            options={typeOptions.map((type) => ({
+              ...type,
+              text: capitalizeFirstLetter(type.value),
+            }))}
+            value={store.types}
+            onChange={(_, DropdownProps) =>
+              store.setTypes(DropdownProps.value as string[])
+            }
+            name="value"
+            multiple
             disabled={store.loading}
-          >
-            <Icon name="plus"></Icon>Tilføj Type
-          </Button>
-          {store.types.length > 0 ? (
-            <Header
-              as="h6"
-              content="Jeg vil gerne have DAGE har TYPE ret"
-            ></Header>
-          ) : (
-            <></>
-          )}
-          {store.types.map((type, index) => (
-            <>
-              <Divider hidden></Divider>
-              <Form.Group widths={2}>
-                <Form.Select
-                  fluid
-                  label="Type"
-                  options={typeOptions}
-                  value={type.value}
-                  onChange={(_: any, props: DropdownProps) =>
-                    handleChangeTypeValue(props, index)
-                  }
-                  name="value"
-                  required
-                  disabled={store.loading}
-                />
-                <Form.Field
-                  fluid
-                  label="Dage"
-                  type="number"
-                  control={Input}
-                  value={type.days}
-                  onChange={(
-                    event: React.ChangeEvent<HTMLInputElement>,
-                    props: DropdownProps
-                  ) => handleChangeTypeDays(event, index)}
-                  name="days"
-                  required
-                  disabled={store.loading}
-                />
-                <Button
-                  className="delete-btn"
-                  icon="x"
-                  compact
-                  onClick={() => store.deleteMealType(index)}
-                  disabled={store.loading}
-                ></Button>
-              </Form.Group>
-            </>
-          ))}
-          <Divider></Divider>
+          />
+          <Divider />
+          <Form.Group inline>
+            <label>Use recipes from</label>
+            <Form.Radio
+              label="No one"
+              checked={store.contextNamespace == null}
+              onClick={() => store.setContextNamespace(undefined)}
+              name="context"
+              disabled={store.loading}
+            />
+            <Form.Radio
+              label="Mob Kitchen"
+              checked={store.contextNamespace === "mob-kitchen"}
+              onClick={() => store.setContextNamespace("mob-kitchen")}
+              name="context"
+              disabled={store.loading}
+            />
+            <Form.Radio
+              label="Kitchen Stories"
+              checked={store.contextNamespace === "kitchen-stories-3"}
+              onClick={() => store.setContextNamespace("kitchen-stories-3")}
+              name="context"
+              disabled={store.loading}
+            />
+          </Form.Group>
+          <Divider />
           <Form.Field
             type="submit"
             control={Button}
@@ -374,12 +293,17 @@ const MealGenieForm = () => {
             loading={store.loading}
             disabled={store.loading}
           >
-            Opret madplan
+            Generate meal plan
           </Form.Field>
         </Form>
       </Card.Content>
     </>
   );
 };
+
+// function that capitalize the first letter
+function capitalizeFirstLetter(string: string) {
+  return string.charAt(0).toUpperCase() + string.slice(1);
+}
 
 export default MealGenieForm;

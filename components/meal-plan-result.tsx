@@ -16,6 +16,7 @@ import { useMealPlanStore } from "../lib/store";
 import useIsMobile from "../lib/useIsMobile";
 import NewlineText from "./newline-text";
 import { Meal, Plan } from "../lib/mealPlanSchema";
+import Link from "next/link";
 
 export default function MealPlanResult() {
   const store = useMealPlanStore();
@@ -49,14 +50,18 @@ function DayResult(props: { meal: Meal }) {
         active={active}
       >
         <Icon name="dropdown" />
-        {meal.description}
+        {meal.title}
+      </Accordion.Title>
+      <Accordion.Title>
+        <Link href={meal.link ?? ""}>{meal.link}</Link>
       </Accordion.Title>
       <Accordion.Content active={active}>
+        <p>{meal.description}</p>
         <Grid columns={2} relaxed>
           <Grid.Column width={isMobile ? 16 : undefined}>
             {meal.directions != null ? (
               <>
-                <Item.Description as={"h5"}>Fremgangsmåde</Item.Description>
+                <Item.Description as={"h5"}>Steps</Item.Description>
                 <Item.Description>
                   <NewlineText text={meal.directions}></NewlineText>
                 </Item.Description>
@@ -68,10 +73,11 @@ function DayResult(props: { meal: Meal }) {
           <Grid.Column>
             {meal.ingredients != null ? (
               <>
-                <Item.Description as={"h5"}>Ingredienser</Item.Description>
+                <Item.Description as={"h5"}>Ingredients</Item.Description>
                 {meal.ingredients.map((ing, index) => (
                   <Item.Description key={index}>
-                    {ing.quantity}{ing.unit != null ? " " + ing.unit : ""} {ing.name} 
+                    {ing.quantity}
+                    {ing.unit != null ? " " + ing.unit : ""} {ing.name}
                   </Item.Description>
                 ))}
               </>
@@ -89,7 +95,7 @@ function Result(props: { result: Plan | null; loading: boolean }) {
   return (
     <Item.Group>
       <Divider horizontal>
-        <Header>Madplan</Header>
+        <Header>Meal plan</Header>
       </Divider>
       {props.result?.plan?.map != null ? (
         props.result.plan.map((day, index) => (
@@ -130,14 +136,14 @@ function Result(props: { result: Plan | null; loading: boolean }) {
                   </Placeholder.Paragraph>
                 </Placeholder>
               ) : (
-                <Message error>Fejl i plan generering. Prøv igen...</Message>
+                <Message error>Unexpected error. Try again...</Message>
               )}
             </Item.Description>
           </Item.Content>
         </Item>
       )}
       <Divider horizontal>
-        <Header>Indkøbsliste</Header>
+        <Header>Shopping list</Header>
       </Divider>
 
       {props.result?.allIngredients?.map != null ? (
@@ -152,7 +158,7 @@ function Result(props: { result: Plan | null; loading: boolean }) {
                         {ing.name[0].toUpperCase() + ing.name.slice(1)}
                       </Table.Cell>
                       <Table.Cell>
-                        {ing.quantity ?? ''} {ing.unit}
+                        {ing.quantity ?? ""} {ing.unit}
                       </Table.Cell>
                     </Table.Row>
                   ))}
@@ -178,9 +184,7 @@ function Result(props: { result: Plan | null; loading: boolean }) {
                   </Placeholder.Paragraph>
                 </Placeholder>
               ) : (
-                <Message error>
-                  Fejl i ingrediens generering. Prøv igen...
-                </Message>
+                <Message error>Unexpected error. Try again...</Message>
               )}
             </Item.Description>
           </Item.Content>

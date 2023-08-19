@@ -1,6 +1,7 @@
 import path from "path";
 import puppeteer, { Browser, Page } from "puppeteer";
 import { ensureDirectoryExists, saveStringAsFile } from "./files";
+import { saveRecipeAsFiles as saveRecipeAsFile } from "./scraperUtils";
 
 export interface Recipe {
   title: string;
@@ -15,24 +16,42 @@ const baseUrl = "https://www.kitchenstories.com";
 const kitchenStoriesRecipesUrl = baseUrl + "/en/recipes";
 
 async function main() {
-  const browser = await puppeteer.launch({ headless: 'new' });
+  const browser = await puppeteer.launch({ headless: "new" });
   const page = await browser.newPage();
-  const recipesWithLink = await scrapeRecipeLinks(page);
-  console.log(`Found ${recipesWithLink.length} recipes. Scraping content from each recipe.`);
+  // const recipesWithLink = await scrapeRecipeLinks(page);
+  // console.log(`Found ${recipesWithLink.length} recipes. Scraping content from each recipe.`);
 
-  let recipesWithContent: Recipe[] = [];
-  for (let i = 4; i < recipesWithLink.length; i += 5) {
-    const recipesToUpdate = recipesWithLink.slice(i - 4, i + 1);
-    const updatedRecipesBatch = await Promise.all(
-      recipesToUpdate.map((recipe) => scrapeRecipe(browser, recipe))
-    );
-    recipesWithContent.push(...updatedRecipesBatch);
-    if (i % 50 <= 5) {
-      console.log(`${i}/${recipesWithLink.length}`);
-    }
-  }
+  await scrapeRecipe(browser, {
+    title: "Chinese wild garlic pancake",
+    link: "https://www.kitchenstories.com/en/recipes/chinese-wild-garlic-pancake",
+  }).then((r) => console.log(r));
 
-  saveRecipesAsFiles(recipesWithContent);
+  await scrapeRecipe(browser, {
+    title: "Tsukune Japanese Meatballs",
+    link: "https://www.kitchenstories.com/en/recipes/tsukune-japanese-meatballs",
+  }).then((r) => console.log(r));
+
+  await scrapeRecipe(browser, {
+    title: "Potato and min ravioli with sage butter",
+    link: "https://www.kitchenstories.com/en/recipes/potato-and-mint-ravioli-with-sage-butter",
+  }).then((r) => console.log(r));
+  await scrapeRecipe(browser, {
+    title: "Chicken cordon bleu with creamy white asparagus",
+    link: "https://www.kitchenstories.com/en/recipes/chicken-cordon-bleu-with-creamy-white-asparagus",
+  }).then((r) => console.log(r));
+
+  // let recipesWithContent: Recipe[] = [];
+  // for (let i = 4; i < recipesWithLink.length; i += 5) {
+  //   const recipesToUpdate = recipesWithLink.slice(i - 4, i + 1);
+  //   const updatedRecipesBatch = await Promise.all(
+  //     recipesToUpdate.map((recipe) => scrapeRecipe(browser, recipe))
+  //   );
+  //   recipesWithContent.push(...updatedRecipesBatch);
+  //   if (i % 50 <= 5) {
+  //     console.log(`${i}/${recipesWithLink.length}`);
+  //   }
+  // }
+
   process.exit();
 }
 
@@ -84,19 +103,21 @@ async function scrapeRecipe(browser: Browser, recipe: Recipe): Promise<Recipe> {
       );
     }
     await page.close();
-    return { ...recipe, ingredients, steps, tags, servings };
+    const res = { ...recipe, ingredients, steps, tags, servings };
+    saveRecipeAsFile(res, "Kitchen Stories Link", baseUrl);
+    return res;
   } catch {
     await page.close();
-    console.log(`Failed getting content for ${recipe.link}`)
+    console.log(`Failed getting content for ${recipe.link}`);
     return { ...recipe, ingredients: [], steps: [], tags: [], servings: "2" };
   }
 }
 
 async function scrapeRecipeLinks(page: Page): Promise<Recipe[]> {
   const recipes: Recipe[] = [];
-    console.log('Finding recipes...');
+  console.log("Finding recipes...");
   await page.goto(kitchenStoriesRecipesUrl, { waitUntil: "domcontentloaded" });
-  for (let i = 0; i <= 100; i++) {
+  for (let i = 0; i <= 150; i++) {
     await page.keyboard.press("PageDown");
     await new Promise((r) => setTimeout(r, 500));
   }
@@ -133,38 +154,4 @@ async function scrapeRecipeLinks(page: Page): Promise<Recipe[]> {
     }
   }
   return recipes;
-}
-
-function recipeToMarkdown(r: Recipe) {
-    const doc: string[] = [];
-    doc.push(`# ${r.title}\n`);
-    doc.push(`[Kitchen Stories Recipe](${r.link})\n\n`);
-    doc.push(`## Ingredients for ${r.servings} servings: \n`);
-    r.ingredients?.forEach((ing) => {
-      doc.push(`- ${ing}\n`);
-    });
-    doc.push(`\n`);
-    doc.push(`## Steps\n`);
-    r.steps?.forEach((step) => {
-      doc.push(`- ${step}\n`);
-    });
-    doc.push(`\n`);
-    doc.push(`## Tags\n`);
-    r.tags?.forEach((tag) => {
-      doc.push(`*${tag}*, `);
-    });
-    return doc.join("");
-  }
-
-
-function saveRecipesAsFiles(recipes: Recipe[]): void {
-  const outputDir = "recipesData";
-  ensureDirectoryExists(outputDir);
-  recipes.forEach((recipe) => {
-    const parts: string[] = recipe.link.split("/");
-    const name: string = parts[parts.length - 1];
-    const filename = path.join("recipesData", `${name}.md`);
-    const content = recipeToMarkdown(recipe);
-    saveStringAsFile(content, filename);
-  });
 }

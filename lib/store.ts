@@ -4,7 +4,7 @@ import { NemligResult } from "../pages/api/nemlig";
 import { Plan } from "./mealPlanSchema";
 
 export type Preference = "vegan" | "vegetarian";
-export type LanguageModel =  'gpt-3.5-turbo-16k' | 'gpt-4'
+export type LanguageModel = "gpt-3.5-turbo-16k" | "gpt-4";
 
 export type ValueWithDay = {
   value?: string;
@@ -40,20 +40,16 @@ export interface State {
   toggleDinner: () => void;
   preferences?: Preference;
   setPreferences: (preference?: Preference) => void;
-  ingredients: ValueWithDay[];
-  addIngredient: () => void;
-  deleteIngredient: (index: number) => void;
-  changeIngredientValue: (value: string, index: number) => void;
-  changeIngredientDays: (days: number, index: number) => void;
-  types: ValueWithDay[];
-  addMealType: () => void;
-  deleteMealType: (index: number) => void;
-  changeMealTypeValue: (value: string, index: number) => void;
-  changeMealTypeDays: (days: number, index: number) => void;
+  ingredients: string[];
+  setIngredients: (value: string[]) => void;
+  types: string[];
+  setTypes: (value: string[]) => void;
   model: LanguageModel;
   setModel: (model: LanguageModel) => void;
-  usePinecone: boolean;
-  toggleUsePinecone: () => void;
+  contextNamespace?: "kitchen-stories-3" | "mob-kitchen";
+  setContextNamespace: (
+    contextNamespace?: "kitchen-stories-3" | "mob-kitchen"
+  ) => void;
   submitChatGpt: () => void;
   submitTypechat: () => void;
   submitNemlig: () => void;
@@ -119,30 +115,13 @@ export const useMealPlanStore = create<State>()((set, get) => ({
     set((state) => ({ ...state, preferences }));
   },
   ingredients: [],
-  addIngredient: () => {
-    const ingredients = get().ingredients;
-    ingredients.push({});
-    set((state: State) => ({ ...state, ingredients }));
-  },
-  deleteIngredient: (index: number) => {
-    const ingredients = get().ingredients;
-    ingredients.splice(index, 1);
-    set((state) => ({ ...state, ingredients }));
-  },
-  changeIngredientValue: (value: string, index: number) => {
-    const ingredients = get().ingredients;
-    ingredients[index].value = value;
-    set((state: State) => ({ ...state, ingredients }));
-  },
-  changeIngredientDays: (days: number, index: number) => {
-    const ingredients = get().ingredients;
-    ingredients[index].days = days;
+  setIngredients: (value: string[]) => {
+    const ingredients = value
     set((state: State) => ({ ...state, ingredients }));
   },
   types: [],
-  addMealType: () => {
-    const types = get().types;
-    types.push({});
+  setTypes: (value: string[]) => {
+    const types = value
     set((state: State) => ({ ...state, types }));
   },
   deleteMealType: (index: number) => {
@@ -150,22 +129,16 @@ export const useMealPlanStore = create<State>()((set, get) => ({
     types.splice(index, 1);
     set((state) => ({ ...state, types }));
   },
-  changeMealTypeValue: (value: string, index: number) => {
-    const types = get().types;
-    types[index].value = value;
-    set((state: State) => ({ ...state, types }));
-  },
-  changeMealTypeDays: (days: number, index: number) => {
-    const types = get().types;
-    types[index].days = days;
-    set((state: State) => ({ ...state, types }));
-  },
   model: "gpt-3.5-turbo-16k",
   setModel: (model: LanguageModel) => {
     set((state: State) => ({ ...state, model }));
   },
-  usePinecone: false,
-  toggleUsePinecone: () => set((state: State) => ({...state, usePinecone: !state.usePinecone})),
+  contextNamespace: undefined,
+  setContextNamespace: (
+    contextNamespace?: "kitchen-stories-3" | "mob-kitchen"
+  ) => {
+    set((state: State) => ({ ...state, contextNamespace }));
+  },
   submitChatGpt: async () => {
     get().setLoading(true);
     get().setMealPlan(null);
@@ -184,7 +157,7 @@ export const useMealPlanStore = create<State>()((set, get) => ({
       ingredients: get().ingredients,
       types: get().types,
       model: get().model,
-      usePinecone: get().usePinecone,
+      contextNamespace: get().contextNamespace,
     };
     const init: InitResult = await fetcher(
       "/api/mealplan/chatgpt/init",
@@ -221,6 +194,7 @@ export const useMealPlanStore = create<State>()((set, get) => ({
         messages: init.messages,
         days: get().days,
         model: get().model,
+        mealPlan: init.mealPlan,
       })
     )
       .then((res) => {
@@ -275,7 +249,7 @@ export const useMealPlanStore = create<State>()((set, get) => ({
   },
   submitNemlig: async () => {
     get().setNemligLoading(true);
-    const names = get().plan?.allIngredients?.map((i) => i.name);
+    const names = get().plan?.allIngredients?.map((i) => i.danishName);
     const nemligResult = await fetcher(
       "api/nemlig",
       JSON.stringify({

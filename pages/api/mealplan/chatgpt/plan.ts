@@ -3,8 +3,12 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { ChatCompletionRequestMessage, Configuration, OpenAIApi } from "openai";
 import { parseJson } from "../../../../lib/parseGptJson";
 import { sessionOptions } from "../../../../lib/session";
+import { MealPlan } from "./init";
+import { getContext } from "../../../../utils/context";
 
 export type MealResult = {
+  link?: string;
+  title: string;
   description: string;
   ingredients: {
     displayName: string;
@@ -26,6 +30,7 @@ export type PlanResult = {
 
 type Body = {
   messages: ChatCompletionRequestMessage[];
+  mealPlan: MealPlan;
   days: number;
   model: string;
 };
@@ -65,17 +70,37 @@ async function createGPT35Completion(
   openai: OpenAIApi,
   model: string
 ) {
-  const messages = body.messages;
-
   const promises = [];
 
   for (let i = 1; i <= body.days; i++) {
-    const planMessages = messages.concat([
+    const recipes = await Promise.all(
+      body.mealPlan
+        .find((mp) => mp.day === i)
+        ?.meals.map((m) =>
+          getContext(m.title, 1, undefined, 0.8).then(
+            (recipe) => recipe[0].text
+          )
+        ) ?? []
+    );
+
+    const planMessages: ChatCompletionRequestMessage[] = [
+      {
+        role: "system",
+        content: `You are a kitchen chef that can describe meals and recipes. You describe the following meal plan: ${JSON.stringify(
+          body.mealPlan
+        )}
+        ${
+          recipes.length > 0 ??
+          "You describe the following recipes: " + JSON.stringify(recipes)
+        }
+      `,
+      },
       {
         role: "user",
-        content: `Give me steps by step directions for the meal(s) of day ${i}. Your response should be in JSON format {meals: {"description": string, "ingredients": {name: string, quantity: number, unit: string}[], "directions": string[]}[]}. Values should be in danish.`,
+        content: `Give me the meal(s) of day ${i}. Your response should be in JSON format {meals: {"link": string, "title": string, "description": string, "ingredients": {name: string, quantity: number, unit: string}[], "directions": string[]}[]}`,
       },
-    ]);
+    ];
+
     const dayData = openai
       .createChatCompletion({
         model: model,

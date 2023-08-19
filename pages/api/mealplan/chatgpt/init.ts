@@ -13,11 +13,22 @@ import {
 } from "../../../../lib/generatePrompt";
 import { sessionOptions } from "../../../../lib/session";
 import { getContext } from "../../../../utils/context";
+import { parseJson } from "../../../../lib/parseGptJson";
+
+export type MealPlan = { 
+  day: number, 
+  meals: { 
+    title: string, 
+    link?: string,
+    ingredients: string[]
+  }[] 
+}[]
 
 export type InitResult = {
   planStr: string;
   gptContent: CreateChatCompletionResponse[];
   messages: ChatCompletionRequestMessage[];
+  mealPlan: MealPlan;
 };
 
 export type InitRequest = NextApiRequest & {
@@ -46,20 +57,20 @@ async function GetMealPlan(req: InitRequest, openaiApiKey: string) {
 
   var customPrompt = getMealPlanPrompt(body);
   console.log(customPrompt);
-  let systemPrompt = `You are a kitchen chef. You describe recipes in great detail. You specify each ingredient individually.`
+  let systemPrompt = `You are a kitchen chef. You describe recipes in great detail. You specify each ingredient individually. Only use links provided by the user. `
 
-  if (body.usePinecone) {
+  if (body.contextNamespace != null) {
     const contextPrompts = getContextPrompts(body);
     const contexts = await Promise.all(
-      contextPrompts.map((p) => getContext(p, 10))
+      contextPrompts.map((p) => getContext(p, 10, body.contextNamespace))
     );
     const contextStr = contexts
       .map((cs) =>
         getRandomElements(
           cs,
-          numberOfRandomElements(contextPrompts.length, body.days)
+          body.days
         )
-          .map((c) => c.text.split("## Tags")[0])
+          .map((c) => c.text.split("## Steps")[0])
           .filter((value, index, self) => self.indexOf(value) === index)
           .join("")
       )
@@ -71,6 +82,19 @@ async function GetMealPlan(req: InitRequest, openaiApiKey: string) {
     END OF CONTEXT BLOCK
     Take into account any CONTEXT BLOCK that is provided. `;
   }
+
+  systemPrompt += `Your response should be in JSON format 
+  { 
+    mealPlan: { 
+      day: number, 
+      meals: { 
+        title: string, 
+        link?: string,
+        ingredients: string[]
+      }[] 
+    }[]
+  }`;
+
   console.log("SYSTEM PROMPT: ", systemPrompt);
 
   const configuration = new Configuration({
@@ -120,6 +144,7 @@ async function createGPT35Completion(
       planStr,
       gptContent: completions,
       messages,
+      mealPlan: parseJson(planStr).mealPlan,
     };
   }
 

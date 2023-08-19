@@ -9,8 +9,10 @@
     "watch-fomantic": "cd semantic && pnpm run build-fomantic && gulp watch",
     "start": "next start",
     "lint": "next lint",
-    "scrape": "ts-node utils/kitchenStoriesWebScraper.ts",
-    "populate-pinecone": "ts-node utils/populateKnowledgeBase.ts"
+    "scrape-kitchenstories": "ts-node utils/kitchenStoriesWebScraper.ts",
+    "scrape-mobkitchen": "ts-node utils/mobKitchenWebScraper.ts",
+    "populate-pinecone": "ts-node utils/populateKnowledgeBase.ts",
+    "test-pinecone": "ts-node utils/testPinecone.ts"
   },
   "dependencies": {
     "@pinecone-database/doc-splitter": "^0.0.1",

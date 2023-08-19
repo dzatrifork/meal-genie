@@ -18,9 +18,6 @@ export async function readFilesInDirectory(
 }
 
 export function saveStringAsFile(content: string, filename: string): void {
-  console.log(filename);
-  console.log(content);
-
   fs.writeFileSync(filename, content, { flag: "w" });
 }
 

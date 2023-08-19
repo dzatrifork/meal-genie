@@ -28,7 +28,7 @@ export default function NemligTable() {
         <Table.Header>
           <Table.Row>
             <Table.HeaderCell colSpan="2">
-              Antal produkter: {nemligOrder.itemsInBasket}, Total pris:{" "}
+              Products: {nemligOrder.itemsInBasket}, Total price:{" "}
               {nemligOrder.totalPrice} kr.
               <Form action="https://www.nemlig.com/basket">
                 <Form.Field control={Button}>

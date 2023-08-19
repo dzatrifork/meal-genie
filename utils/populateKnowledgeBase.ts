@@ -17,17 +17,17 @@ async function populatePinecone() {
   });
   const openai = new OpenAIApi(config);
 
-  const recipes = await files.readFilesInDirectory("recipesData");
+  const recipes = await files.readFilesInDirectory("mobKitchenRecipesData");
   console.log(`Number of recipes: ${recipes.length}`);
-  const docs = flatten(
-    await Promise.all(recipes.map((recipe) => splitter.splitMarkdown(recipe)))
-  );
-  console.log(`Number of documents after split: ${docs.length}`);
+  // const docs = flatten(
+  //   await Promise.all(recipes.map((recipe) => splitter.splitMarkdown(recipe)))
+  // );
+  const docs = recipes.map((recipe) => splitter.splitTitleAndIngredients(recipe));
   const vectors = await Promise.all(
     docs.map((doc) => embeddings.embedDocument(doc, openai))
   );
   console.log(`Finished embedding documents into vectors: ${vectors.length}`);
-  utils.chunkedUpsert(pineconeIndex!, vectors, "kitchen-stories-3", 100);
+  utils.chunkedUpsert(pineconeIndex!, vectors, "", 100);
 }
 
 function flatten<T>(arr: T[][]): T[] {

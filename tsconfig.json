@@ -26,7 +26,10 @@
 	"ts-node": {
 		"esm": true,
 		"experimentalSpecifierResolution": "node",
-		"transpileOnly": true
+		"transpileOnly": true,
+    "compilerOptions": {
+      "module": "commonjs"
+    }
 	},
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": ["node_modules"]

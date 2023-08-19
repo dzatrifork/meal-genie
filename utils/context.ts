@@ -11,7 +11,8 @@ export type Metadata = {
 export async function getContext(
   message: string,
   topK: number,
-  minScore: number = 0.7
+  namespace?: string,
+  minScore?: number
 ): Promise<Metadata[]> {
   const config = new Configuration({
     apiKey: process.env.OPENAI_API_KEY,
@@ -25,15 +26,15 @@ export async function getContext(
     queryRequest: {
       vector,
       topK,
-      namespace: "kitchen-stories-3",
+      namespace,
       includeMetadata: true,
     },
   });
 
   if (queryResponse.matches != null) {
     return queryResponse.matches
-      .filter((sv) => (sv.score ?? 0) > minScore)
-      .map((sv) => (sv.metadata as Metadata));
+      .filter((sv) => (sv.score ?? 0) > (minScore ?? 0.7))
+      .map((sv) => sv.metadata as Metadata);
   }
 
   return [];
